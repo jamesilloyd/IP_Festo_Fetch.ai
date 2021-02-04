@@ -11,7 +11,7 @@ import operationTypes
 
 class MyModel(Model):
     """A model with some number of agents."""
-    def __init__(self, width, height, probability, model_reporters_dict):
+    def __init__(self, width, height, probability, model_reporters_dict = None):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -54,10 +54,13 @@ class MyModel(Model):
         self.grid.place_agent(machineAgent3,(12,8))
 
         # TODO: how can we refactor this out?
-        self.datacollector = DataCollector(
-            model_reporters = model_reporters_dict,
-            # agent_reporters = {"Wait time":"waitTime"}
-        )
+        if(model_reporters_dict is None):
+            self.datacollector = DataCollector()
+        else:
+            self.datacollector = DataCollector(
+                model_reporters = model_reporters_dict,
+                # agent_reporters = {"Wait time":individualOrderWaitTime}
+            )
     
     def step(self):
         '''Advance the model by one step.'''

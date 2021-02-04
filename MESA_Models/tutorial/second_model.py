@@ -11,8 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-'''This model works the following way:
-'''
 
 showPrints = False
 

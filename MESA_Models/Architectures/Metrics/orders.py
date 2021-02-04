@@ -1,4 +1,4 @@
-from mesa import Model
+from mesa import Model, Agent
 
 def ordersComplete(model):
 
@@ -25,3 +25,13 @@ def averageOrderWaitTime(model):
 
     
     return total_wait_time/total_orders
+
+
+def individualOrderWaitTime(agent):
+
+    if agent.agentType == 'order':
+        return  agent.waitTime
+    else:
+        return None
+
+    
