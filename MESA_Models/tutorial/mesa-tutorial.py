@@ -86,14 +86,14 @@ def agent_portrayal(agent):
                 "r": 0.5 if agent.wealth == 0 else 0.2}
     return portrayal
     
-chart = ChartModule([{"Label": "Gini",
-                      "Color": "Black"}],
-                    data_collector_name='datacollector')
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+# chart = ChartModule([{"Label": "Gini",
+#                       "Color": "Black"}],
+#                     data_collector_name='datacollector')
+# grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
 
-server = ModularServer(MoneyModel,[grid,chart],'MONEY',{"N":100, 'width':10,'height':10})
-server.port = 8521
-server.launch()
+# server = ModularServer(MoneyModel,[grid,chart],'MONEY',{"N":100, 'width':10,'height':10})
+# server.port = 8521
+# server.launch()
 
 
 
@@ -121,19 +121,19 @@ server.launch()
 
 '''HOW TO SHOW THE DATA FROM DATACOLLECTOR'''
 
-# model = MoneyModel(50,10,10)
-# for i in range(100):
-#     model.step()
-# gini = model.datacollector.get_model_vars_dataframe()
-# gini.plot()
-# plt.show()
+model = MoneyModel(50,10,10)
+for i in range(5000):
+    model.step()
+gini = model.datacollector.get_model_vars_dataframe()
+gini.plot()
+plt.show()
 
-# agent_wealth = model.datacollector.get_agent_vars_dataframe()
-# print(agent_wealth.head())
+agent_wealth = model.datacollector.get_agent_vars_dataframe()
+print(agent_wealth.head())
 
-# one_agent_wealth = agent_wealth.xs(14,level="AgentID")
-# one_agent_wealth.Wealth.plot()
-# plt.show()
+one_agent_wealth = agent_wealth.xs(14,level="AgentID")
+one_agent_wealth.Wealth.plot()
+plt.show()
 
 
 '''USED FOR VISUALISING THE CELL CONTENTS IN A GRID'''
