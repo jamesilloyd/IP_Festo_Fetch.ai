@@ -3,7 +3,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
 from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
-from simpleModel import MyModel
+from simpleArchitecture import MyModel
 from Metrics import utilisation, orders
 from matplotlib import pyplot as plt
 import os
@@ -34,16 +34,16 @@ if __name__ == '__main__':
 
         # Save results
         number = 0
-        while (os.path.exists('/Users/heisenberg/IP/MESA_Models/Architectures/results/test_{0}'.format(number)) == True):
+        while (os.path.exists('/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}'.format(number)) == True):
             number += 1
 
         os.makedirs(
-            '/Users/heisenberg/IP/MESA_Models/Architectures/results/test_{0}'.format(number))
+            '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}'.format(number))
 
         model_data.to_pickle(
-            '/Users/heisenberg/IP/MESA_Models/Architectures/results/test_{0}/model_data.pkl'.format(number))
+            '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}/model_data.pkl'.format(number))
         agent_data.to_pickle(
-            '/Users/heisenberg/IP/MESA_Models/Architectures/results/test_{0}/agent_data.pkl'.format(number))
+            '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}/agent_data.pkl'.format(number))
 
     else:
         grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)
