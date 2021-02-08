@@ -4,9 +4,9 @@ from mesa.space import MultiGrid
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 import random
-from FedAgents.orderAgent import OrderAgent
-from FedAgents.machineAgent import MachineAgent
-from FedAgents.scheduleAgent import ScheduleAgent
+from .agents.orderAgent import OrderAgent
+from .agents.machineAgent import MachineAgent
+from .agents.scheduleAgent import ScheduleAgent
 
 '''
 Every machine has a scheduling agent that arranges it's activities.
@@ -94,5 +94,4 @@ class FederatedModel(Model):
             orderAgent = OrderAgent(self.schedule.get_agent_count()+1,self,operations)
             self.schedule.add(orderAgent)
             self.grid.place_agent(orderAgent,(0,19))
-
 

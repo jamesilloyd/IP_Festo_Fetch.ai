@@ -3,15 +3,17 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
 from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
-from Architectures.Federated.federatedArchitecture import FederatedModel
 from Metrics import utilisation, orders, messages
 from matplotlib import pyplot as plt
+from Architectures.Federated.federatedArchitecture import FederatedModel
 import os
 import operationTypes 
 
 runBatch = False
 architecture = 'Federated'
 saveResults = False
+
+
 if __name__ == '__main__':
 
     if(runBatch):
@@ -64,7 +66,7 @@ if __name__ == '__main__':
                                'Color': 'Green'}], data_collector_name='datacollector')
         chart4 = ChartModule([{'Label': 'Messages Sent',
                                'Color': 'Green'}], data_collector_name='datacollector')
-        server = ModularServer(FederatedModel, [grid, chart, chart4, chart2, chart3], 'DM', {'width': 20, 'height': 20, 'probability' : 2, 'operationTypes':operationTypes.operationTypes ,'model_reporters_dict': {
+        server = ModularServer(FederatedModel, [grid, chart, chart4, chart2, chart3], 'DM', {'width': 20, 'height': 20, 'probability' : 20, 'operationTypes':operationTypes.operationTypes ,'model_reporters_dict': {
             "Utilisation": utilisation.machine_utilisation, "Complete Orders": orders.ordersComplete, 'Average Order Wait Time': orders.averageOrderWaitTime, 'Messages Sent': messages.messagesSent}})
 
         server.port = 8521
