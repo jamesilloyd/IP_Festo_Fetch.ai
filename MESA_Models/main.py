@@ -5,11 +5,11 @@ from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
 from Metrics import utilisation, orders, messages
 from matplotlib import pyplot as plt
-from Architectures.Federated.federatedArchitecture import FederatedModel
+from Architectures.Federated_Broker.federated_broker_architecture import FederatedModel
 import os
 import operationTypes 
 
-runBatch = False
+runBatch = True
 architecture = 'Federated'
 saveResults = False
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     if(runBatch):
         # TODO: need to look a bit more into how the agent_reporters work and what they could be used for
-        fixed_params = {'width': 20, 'height': 20}
+        fixed_params = {'width': 20, 'height': 20, 'operationTypes':operationTypes.operationTypes}
         variable_params = {"probability": range(1, 30, 1)}
         batch_run = BatchRunner(
             FederatedModel,
@@ -44,10 +44,10 @@ if __name__ == '__main__':
         # Save results
         if(saveResults):
             number = 0
-            # TODO: change the path name
             while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture)) == True):
                 number += 1
 
+            # TODO: maybe make a text file that describes the test that has been run
             os.makedirs(
                 '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture))
 
