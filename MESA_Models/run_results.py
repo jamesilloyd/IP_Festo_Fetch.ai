@@ -2,7 +2,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 
-
+# TODO: have way of changing this path
 agent_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_0/agent_data.pkl')
 model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_0/model_data.pkl')
 

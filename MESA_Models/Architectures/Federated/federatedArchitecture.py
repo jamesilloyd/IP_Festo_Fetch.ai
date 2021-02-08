@@ -7,7 +7,6 @@ import random
 from FedAgents.orderAgent import OrderAgent
 from FedAgents.machineAgent import MachineAgent
 from FedAgents.scheduleAgent import ScheduleAgent
-import operationTypes
 
 '''
 Every machine has a scheduling agent that arranges it's activities.
@@ -15,18 +14,19 @@ Every machine has a scheduling agent that arranges it's activities.
 
 class FederatedModel(Model):
     """A model with some number of agents."""
-    def __init__(self, width, height, probability, model_reporters_dict = None):
+    def __init__(self, width, height, probability,operationTypes, model_reporters_dict = None,):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
         self.probability = probability
+        self.operationTypes = operationTypes
         
 
         for i in range(6):
             operations = []
             # Choose random selection of operations
             for j in range(random.randrange(1,5,1)):
-                operations.append(random.choice(operationTypes.operationTypes))
+                operations.append(random.choice(operationTypes))
 
             orderAgent1 = OrderAgent(i,self,operations)
             self.schedule.add(orderAgent1)
@@ -90,8 +90,9 @@ class FederatedModel(Model):
             operations = []
             # Choose random selection of operations
             for j in range(random.randrange(5)):
-                operations.append(random.choice(operationTypes.operationTypes))
+                operations.append(random.choice(self.operationTypes))
             orderAgent = OrderAgent(self.schedule.get_agent_count()+1,self,operations)
             self.schedule.add(orderAgent)
             self.grid.place_agent(orderAgent,(0,19))
+
 

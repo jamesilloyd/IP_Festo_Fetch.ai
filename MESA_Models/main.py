@@ -3,13 +3,14 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
 from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
-from federatedArchitecture import FederatedModel
+from Architectures.Federated.federatedArchitecture import FederatedModel
 from Metrics import utilisation, orders, messages
 from matplotlib import pyplot as plt
 import os
+import operationTypes 
 
-
-runBatch = True
+runBatch = False
+architecture = 'Federated'
 saveResults = False
 if __name__ == '__main__':
 
@@ -41,16 +42,17 @@ if __name__ == '__main__':
         # Save results
         if(saveResults):
             number = 0
-            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}'.format(number)) == True):
+            # TODO: change the path name
+            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture)) == True):
                 number += 1
 
             os.makedirs(
-                '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture))
 
             model_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}/model_data.pkl'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture))
             agent_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/Architectures/Simple/results/test_{0}/agent_data.pkl'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number,architecture))
 
     else:
         grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)
@@ -62,7 +64,7 @@ if __name__ == '__main__':
                                'Color': 'Green'}], data_collector_name='datacollector')
         chart4 = ChartModule([{'Label': 'Messages Sent',
                                'Color': 'Green'}], data_collector_name='datacollector')
-        server = ModularServer(FederatedModel, [grid, chart, chart4, chart2, chart3], 'DM', {'width': 20, 'height': 20, 'probability' : 2, 'model_reporters_dict': {
+        server = ModularServer(FederatedModel, [grid, chart, chart4, chart2, chart3], 'DM', {'width': 20, 'height': 20, 'probability' : 2, 'operationTypes':operationTypes.operationTypes ,'model_reporters_dict': {
             "Utilisation": utilisation.machine_utilisation, "Complete Orders": orders.ordersComplete, 'Average Order Wait Time': orders.averageOrderWaitTime, 'Messages Sent': messages.messagesSent}})
 
         server.port = 8521
