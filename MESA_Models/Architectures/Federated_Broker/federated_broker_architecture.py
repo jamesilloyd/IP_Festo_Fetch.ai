@@ -49,17 +49,17 @@ class FederatedModel(Model):
         self.schedule.add(machineAgent2)
         self.grid.place_agent(machineAgent2,(8,4))
 
-        machineAgent2 = MachineAgent(orderNumber + 4,self,'3D',8,(12,4))
-        self.schedule.add(machineAgent2)
-        self.grid.place_agent(machineAgent2,(12,4))
-
-        machineAgent3 = MachineAgent(orderNumber + 5,self,'IM',7,(8,8))
+        machineAgent3 = MachineAgent(orderNumber + 4,self,'3D',8,(12,4))
         self.schedule.add(machineAgent3)
-        self.grid.place_agent(machineAgent3,(8,8))
+        self.grid.place_agent(machineAgent3,(12,4))
 
-        machineAgent3 = MachineAgent(orderNumber + 6,self,'IM',7,(12,8))
-        self.schedule.add(machineAgent3)
-        self.grid.place_agent(machineAgent3,(12,8))
+        machineAgent4 = MachineAgent(orderNumber + 5,self,'IM',7,(8,8))
+        self.schedule.add(machineAgent4)
+        self.grid.place_agent(machineAgent4,(8,8))
+
+        machineAgent5 = MachineAgent(orderNumber + 6,self,'IM',7,(12,8))
+        self.schedule.add(machineAgent5)
+        self.grid.place_agent(machineAgent5,(12,8))
 
         if(model_reporters_dict is None):
             self.datacollector = DataCollector()

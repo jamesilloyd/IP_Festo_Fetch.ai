@@ -20,8 +20,11 @@ def averageOrderWaitTime(model):
         if(agent.agentType == 'order'):
             total_orders += 1
             total_wait_time += agent.waitTime
-    
-    return total_wait_time/total_orders
+
+    if(total_orders != 0):
+        return total_wait_time/total_orders
+    else:
+        return 0
 
 
 def individualOrderWaitTime(agent):

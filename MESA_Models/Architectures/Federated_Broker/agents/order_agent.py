@@ -4,7 +4,6 @@ from mesa import Agent, Model
 class OrderAgent(Agent):
 
     agentType = 'order'
-    """An agent with fixed initial wealth."""
     def __init__(self, unique_id, model, operations):
         super().__init__(unique_id, model)
         self.operations = operations
