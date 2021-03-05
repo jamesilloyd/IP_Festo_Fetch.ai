@@ -4,13 +4,21 @@ from mesa import Agent
 def agent_portrayal(agent):
     # TODO: do we need to add this agentType into the original class?
     if(agent.agentType == 'order'):
+        color = ''
+        if(agent.completed and agent.successful):
+            color = 'green'
+        elif(agent.completed and not agent.successful):
+            color = 'red'
+        else:
+            color = 'blue'
+
         portrayal = {"Shape": "circle",
-                "Color": 'green' if agent.completed else 'blue',
+                "Color": color,
                 "Filled": "true",
                 'text_color':'white',
                 "Layer": 0.5,
                 'text': str(agent.unique_id),
-                "r": 0.4}
+                "r": 0.7}
     elif(agent.agentType == 'machine'):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
@@ -19,14 +27,14 @@ def agent_portrayal(agent):
                 'text_color':'black',
                 "Layer": 0,
                 "r": 0.7 }
-    elif(agent.agentType in ['scheduler','broker','staff']):
+    elif(agent.agentType in ['scheduler','broker','staff','federator']):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
                 "Filled": "true",
-                'text': 'Scheduler',
+                'text': agent.agentType,
                 'text_color':'black',
                 "Layer": 0,
-                "r": 1 }
+                "r": 3}
     elif(agent.agentType == 'product'):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
@@ -42,6 +50,6 @@ def agent_portrayal(agent):
                 'text': 'Factory',
                 'text_color':'black',
                 "Layer": 0,
-                "r": 1}
+                "r": 1.5}
     
     return portrayal

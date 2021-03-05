@@ -8,6 +8,7 @@ def messagesSent(model):
     for agent in model.schedule.agents:
         totalMessages += agent.messagesSent
     
+
     return totalMessages
 
 
