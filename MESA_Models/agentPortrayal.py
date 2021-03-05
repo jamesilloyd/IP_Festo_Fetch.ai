@@ -26,7 +26,7 @@ def agent_portrayal(agent):
                 'text': agent.typeOfOperation,
                 'text_color':'black',
                 "Layer": 0,
-                "r": 0.7 }
+                "r": 1 }
     elif(agent.agentType in ['scheduler','broker','staff','federator']):
         portrayal = {"Shape": "circle",
                 "Color": 'green',

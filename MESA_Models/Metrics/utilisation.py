@@ -6,7 +6,7 @@ def machine_utilisation(model):
     total_time_working = 0
     total_time_free = 0
     for agent in model.schedule.agents:
-        if(agent.agentType in ['machine', 'resource','factory']):
+        if(agent.agentType in ['machine', 'resource']):
             total_time_free += agent.timeFree
             total_time_working += agent.timeWorking
 

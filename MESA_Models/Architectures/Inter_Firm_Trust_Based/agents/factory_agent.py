@@ -17,26 +17,17 @@ class FactoryAgent(Agent):
         
         self.coordinates = coordinates
 
+        self.capabilities = {}
         self.receivedMessages = []
         self.messagesSent = 0
+        
         self.scheduleStaffIds = []
         self.productAgentIds = []
 
         self.newOrdersBacklog = []
         self.requestsBacklog = {}
-        self.WIPBacklog = []
-        self.isOperating = False
-        self.currentOperation = 'placeholder'
         
         self.distributed = distributed
-
-        self.timeFree = 0
-        self.timeWorking = 0
-
-
-        for agent in self.model.schedule.agents:
-            if agent.agentType == 'federator':
-                agent.factoryIds.append(self.unique_id)
     
 
     @property
@@ -51,7 +42,7 @@ class FactoryAgent(Agent):
 
     @property
     def newOrderCoordinates(self):
-        changedX = self.coordinates[0] + 2
+        changedX = self.coordinates[0] - 2
         return (changedX,self.coordinates[1])
 
     @property
@@ -70,7 +61,7 @@ class FactoryAgent(Agent):
         if(self.distributed):
             self.checkRequests()
             self.checkReceivedMessages()
-        self.workThroughWIP()
+        # self.workThroughWIP()
         
             
 
@@ -78,13 +69,20 @@ class FactoryAgent(Agent):
     def checkOrderBacklog(self):
         # Check backlog
         for agent in self.newOrdersBacklog:
-            # Random probability that we can or cannot work on the order
-            number = random.randrange(3)
-            if(number != 0):
-                print('Factory {} - Order {} can be done inhouse'.format(self.unique_id,agent.unique_id))
-                self.WIPBacklog.append(agent)
-                self.model.grid.move_agent(agent,self.WIPBacklogCoordinates)
+            # If we have the capabilities we will carry it out (and a 20 % chance that we don't have capacity)
+            # TODO: add in capacity check 
+            if(agent.productType in self.capabilities and random.randrange(5) != 0):
                 
+                # Choose which resource to allocate it to
+                chosenMachineId = random.choice(self.capabilities[agent.productType]['ids'])
+                print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
+
+                for machineAgent in self.model.schedule.agents:
+                    if machineAgent.unique_id == chosenMachineId:
+                        machineAgent.backLogOrders.append(agent)
+                        self.model.grid.move_agent(agent,machineAgent.backlogCoordinates)
+            
+            # If we don't have the capbailies we will outsource it
             elif(self.distributed):
                 print('Factory {} - Order {} needs to be outsourced'.format(self.unique_id,agent.unique_id))
                 self.requestsBacklog.update({agent.unique_id:{'agent':agent,'status':'needIds'}})
@@ -107,7 +105,7 @@ class FactoryAgent(Agent):
                 # Ask federator for company ids
                 for agent in self.model.schedule.agents:
                     if agent.agentType == 'federator':
-                        message = Message(self.unique_id,'idsRequest',capability='',orderId=backlogAgent.unique_id)
+                        message = Message(self.unique_id,'idsRequest',capability=backlogAgent.productType,orderId=backlogAgent.unique_id)
                         agent.receivedMessages.append(message)
                         self.messagesSent += 1
                 
@@ -118,7 +116,7 @@ class FactoryAgent(Agent):
                 # Send message to those ids
                 for agent in self.model.schedule.agents:
                     if agent.unique_id in self.requestsBacklog[key]['receivedIds'] and agent.unique_id != self.unique_id:
-                        message = Message(self.unique_id,'resourceRequest',orderId=backlogAgent.unique_id,capability='')
+                        message = Message(self.unique_id,'resourceRequest',orderId=backlogAgent.unique_id,capability=backlogAgent.productType)
                         agent.receivedMessages.append(message)
                         self.messagesSent += 1
                 
@@ -132,7 +130,7 @@ class FactoryAgent(Agent):
 
                     # If the offers list is empty then send the order to the bad pile
                     if not self.requestsBacklog[key]['offers']:
-                        print('Factory {} - recieved no viable offers for order {}'.format(self.unique_id,key))
+                        print('Factory {} - Recieved no viable offers for order {}'.format(self.unique_id,key))
                         self.requestsBacklog[key]['status'] = 'unsuccessful'
                         self.model.grid.move_agent(backlogAgent,self.unsuccessfulOrderCoordinates)
                         backlogAgent.completed = True
@@ -147,73 +145,63 @@ class FactoryAgent(Agent):
                             if offer['price'] < lowestBid:
                                 lowestBid = offer['price']
                                 factoryId = offer['factory']
-                        print('Factory {} - chosen factory {} for order {} at a bid of {}'.format(self.unique_id,key,factoryId,key,lowestBid))
+                                machineId = offer['machine']
+                        print('Factory {0} - Chosen factory {1} for order {2} at a bid of {3}'.format(self.unique_id,factoryId,key,lowestBid))
                         self.requestsBacklog[key]['status'] = 'successfullyOutsourced'
 
                         for agent in self.model.schedule.agents:
-                            if agent.unique_id == factoryId:
-                                self.model.grid.move_agent(backlogAgent,agent.WIPBacklogCoordinates)
-                                agent.WIPBacklog.append(backlogAgent)
+                            if agent.unique_id == machineId:
+                                self.model.grid.move_agent(backlogAgent,agent.backlogCoordinates)
+                                agent.backLogOrders.append(backlogAgent)
                                 self.messagesSent += 1
 
                 else:
                     self.requestsBacklog[key]['timer'] -= 1
                     print('Factory {} - Waiting to receive all bids -  {} steps'.format(self.unique_id, self.requestsBacklog[key]['timer']))
-                    print(len(self.requestsBacklog[key]['offers']))
                     
 
 
     def newOrders(self):
-        # Give a 20% probability that a new order will arrive into the syste
+        # Give a 20% probability that a new order will arrive into the system
         number = random.randrange(5)
         if(number == 0):
-            print('Factory {} - New order received'.format(self.unique_id))
-            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,'',5)
+            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,random.randrange(5,10))
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
+            print('Factory {} - New order received for {}'.format(self.unique_id,orderAgent.productType))
     
-    def workThroughWIP(self):
-        # TODO: get a machine to do this part
-        if(self.isOperating):
-            self.timeWorking += 1
-            self.currentOperation.timeToComplete -= 1
-            if(self.currentOperation.timeToComplete == 0):
-                self.currentOperation.completed = True
-                self.isOperating = False
-                self.WIPBacklog.pop(0)
-                self.model.grid.move_agent(self.currentOperation,self.completedOrderCoordinates)
-
-        else:
-            self.timeFree +=1
-            if self.WIPBacklog:
-                self.isOperating = True
-                self.currentOperation = self.WIPBacklog[0]
-                self.currentOperation.inOperation = True
-                self.model.grid.move_agent(self.currentOperation,self.WIPCoordinates)
 
 
     def checkReceivedMessages(self):
-    
-
         # check received messages
         for message in self.receivedMessages:
             if message.type == "idsResponse":
-                # update hashmap of request backlog
-                print('Factory {} - received request ids for order {}'.format(self.unique_id,message.orderId))
-                self.requestsBacklog[message.orderId]['status'] = 'receivedIds'
-                self.requestsBacklog[message.orderId]['receivedIds'] = message.requestedIds
+                # Check fi the requestedIds are empty or not
+                if(message.requestedIds):
+                    # update hashmap of request backlog
+                    print('Factory {} - received request ids for order {}'.format(self.unique_id,message.orderId))
+                    self.requestsBacklog[message.orderId]['status'] = 'receivedIds'
+                    self.requestsBacklog[message.orderId]['receivedIds'] = message.requestedIds
+                else:
+                    # There are no factories with this capability 
+                    print('Factory {} - received no compatible ids for order {}'.format(self.unique_id,message.orderId))
+                    self.requestsBacklog[message.orderId]['status'] = 'unsuccessful'
+                    agent = self.requestsBacklog[message.orderId]['agent']
+                    self.model.grid.move_agent(agent,self.unsuccessfulOrderCoordinates)
+                    agent.completed = True
+                    agent.successful = False
 
                 
 
             elif message.type == "resourceRequest":
                 print('Factory {} - received resource request for order {} from factory {}'.format(self.unique_id,message.orderId,message.fromId))
-                # Check whether we can carry out the operation
-                number = random.randrange(5)
-                if(number == 0):
+                # Check whether we can carry out the operation (and random chance we can't)
+                if(message.capability in self.capabilities and random.randrange(5) != 0):
                     price = random.randrange(100)
-                    print('Factory {} - can carry out order {} for {} '.format(self.unique_id,message.orderId,price))
-                    returnMessage = Message(self.unique_id,'resourceRequestResponse',orderId=message.orderId,canCarryOutRequest=True,price=price)
+                    chosenMachineId = random.choice(self.capabilities[message.capability]['ids'])
+                    print('Factory {} - can carry out order {} for €{} on machine {}'.format(self.unique_id,message.orderId,price,chosenMachineId))
+                    returnMessage = Message(self.unique_id,'resourceRequestResponse',orderId=message.orderId,canCarryOutRequest=True,price=price,machineId=chosenMachineId)
                 else:
                     print('Factory {} - cannot do order {}'.format(self.unique_id,message.orderId))
                     returnMessage = Message(self.unique_id,'resourceRequestResponse',orderId=message.orderId,canCarryOutRequest=False)
@@ -232,8 +220,21 @@ class FactoryAgent(Agent):
                 
                 if message.canCarryOutRequest:
                     print('Factory {} - received offer for order {} from factory {}'.format(self.unique_id,message.orderId,message.fromId))
-                    self.requestsBacklog[message.orderId]['offers'].append({'factory':message.fromId,'price':message.price})
+                    self.requestsBacklog[message.orderId]['offers'].append({'factory':message.fromId,'price':message.price,'machine':message.machineId})
+            
+            elif message.type == 'accounceCapabilitiesMachine':
 
+                print('Factory {} - New capability {} - machine {}'.format(self.unique_id,message.capability,message.fromId))
+                if message.capability in self.capabilities:
+                    self.capabilities[message.capability]['ids'].append(message.fromId)
+                else:
+                    self.capabilities.update({message.capability:{'ids':[message.fromId]}})
+
+                # Let the federator know
+                for agent in self.model.schedule.agents:
+                    if agent.agentType == 'federator':
+                        capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
+                        agent.receivedMessages.append(capabilitiesMessage)
 
 
         self.receivedMessages.clear()

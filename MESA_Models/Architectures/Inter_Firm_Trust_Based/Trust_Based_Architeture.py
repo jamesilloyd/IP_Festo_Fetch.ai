@@ -28,6 +28,15 @@ Trust-based resource sharing mechanism for distributed manufacturing
 	- Amount of required resources
 '''
 
+factoriesAndCapabilities = [
+    [(25,25),['CNC','CNC','CNC']],
+    [(10,9),['IM','IM']],
+    [(10,25),['3D','CNC','IM']],
+    [(25,9),['3D']],
+    [(15,35),['3D','3D','CNC']],
+    [(30,35),['IM','3D','CNC']],
+    ]
+
 class TrustBasedArchitecture(Model):
 
     def __init__(self, width, height, probability, operationTypes, distributed, model_reporters_dict = None):
@@ -43,50 +52,21 @@ class TrustBasedArchitecture(Model):
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre,federationCentre.coordinates)
 
-        festoFactoryAgent1 = FactoryAgent(2,self,(21,15),distributed)
-        self.schedule.add(festoFactoryAgent1)
-        self.grid.place_agent(festoFactoryAgent1,festoFactoryAgent1.coordinates)
+        for factory in factoriesAndCapabilities:
+            factoryNumber = self.schedule.get_agent_count() + 1
+            newFactoryAgent = FactoryAgent(factoryNumber,self,factory[0],distributed)
+            self.schedule.add(newFactoryAgent)
+            self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
 
-        festoFactoryAgent2 = FactoryAgent(3,self,(15,21),distributed)
-        self.schedule.add(festoFactoryAgent2)
-        self.grid.place_agent(festoFactoryAgent2,festoFactoryAgent2.coordinates)
-
-        festoFactoryAgent3 = FactoryAgent(4,self,(9,15),distributed)
-        self.schedule.add(festoFactoryAgent3)
-        self.grid.place_agent(festoFactoryAgent3,festoFactoryAgent3.coordinates)
-
-        festoFactoryAgent4 = FactoryAgent(5,self,(15,9),distributed)
-        self.schedule.add(festoFactoryAgent4)
-        self.grid.place_agent(festoFactoryAgent4,festoFactoryAgent4.coordinates)
-
-        festoFactoryAgent5 = FactoryAgent(6,self,(11,11),distributed)
-        self.schedule.add(festoFactoryAgent5)
-        self.grid.place_agent(festoFactoryAgent5,festoFactoryAgent5.coordinates)
-
-        festoFactoryAgent6 = FactoryAgent(7,self,(19,19),distributed)
-        self.schedule.add(festoFactoryAgent6)
-        self.grid.place_agent(festoFactoryAgent6,festoFactoryAgent6.coordinates)
-        
-        festoFactoryAgent7 = FactoryAgent(8,self,(11,19),distributed)
-        self.schedule.add(festoFactoryAgent7)
-        self.grid.place_agent(festoFactoryAgent7,festoFactoryAgent7.coordinates)
-
-        festoFactoryAgent8 = FactoryAgent(9,self,(19,11),distributed)
-        self.schedule.add(festoFactoryAgent8)
-        self.grid.place_agent(festoFactoryAgent8,festoFactoryAgent8.coordinates)
-        
-        festoFactoryAgent9 = FactoryAgent(10,self,(5,5),distributed)
-        self.schedule.add(festoFactoryAgent9)
-        self.grid.place_agent(festoFactoryAgent9,festoFactoryAgent9.coordinates)
-
-
-        festoFactoryAgent10 = FactoryAgent(11,self,(5,25),distributed)
-        self.schedule.add(festoFactoryAgent10)
-        self.grid.place_agent(festoFactoryAgent10,festoFactoryAgent10.coordinates)
-
-        festoFactoryAgent11 = FactoryAgent(12,self,(25,5),distributed)
-        self.schedule.add(festoFactoryAgent11)
-        self.grid.place_agent(festoFactoryAgent11,festoFactoryAgent11.coordinates)
+            incrementedYCoordinate = 2
+            for capability in factory[1]:
+                coordinates = (factory[0][0] + 3,factory[0][1] - incrementedYCoordinate)
+                newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber)
+                self.schedule.add(newMachine)
+                self.grid.place_agent(newMachine,newMachine.coordinates)
+                incrementedYCoordinate += 2
+                
+            
 
         if(model_reporters_dict is None):
             self.datacollector = DataCollector()
@@ -100,6 +80,7 @@ class TrustBasedArchitecture(Model):
         '''Advance the model by one step.'''
         self.datacollector.collect(self)
         self.schedule.step()
+        
         # self.newOrders()
 
     

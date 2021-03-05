@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     if(runBatch):
         # TODO: need to look a bit more into how the agent_reporters work and what they could be used for
-        fixed_params = {'width': 30, 'height': 30,
+        fixed_params = {'width': 40, 'height': 40,
                         'operationTypes': operationTypes.operationTypes}
         variable_params = {"probability": range(1, 30, 1)}
         batch_run = BatchRunner(
@@ -57,7 +57,7 @@ if __name__ == '__main__':
                 '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number, architecture))
 
     else:
-        grid = CanvasGrid(agent_portrayal, 30, 30, 600, 600)
+        grid = CanvasGrid(agent_portrayal, 40, 40, 600, 600)
         chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],
                             data_collector_name='datacollector')
         chart2 = ChartModule(
@@ -68,13 +68,15 @@ if __name__ == '__main__':
                                'Color': 'Green'}], data_collector_name='datacollector')
         chart5 = ChartModule([{'Label': 'Successful Orders',
                                'Color': 'Green'}], data_collector_name='datacollector')
+        chart6 = ChartModule([{'Label': 'Late Orders',
+                               'Color': 'Red'}], data_collector_name='datacollector')
         server = ModularServer(TrustBasedArchitecture,
-                               [grid, chart, chart4, chart2, chart5, chart3],
+                               [grid, chart, chart4, chart2, chart5, chart3, chart6],
                                'Inter-Firm',
-                               {'width': 30, 'height': 30, 'probability': 5, 'distributed':True,'operationTypes': operationTypes.operationTypes,
+                               {'width': 40, 'height': 50, 'probability': 5, 'distributed':True,'operationTypes': operationTypes.operationTypes,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation, "Complete Orders": orders.ordersComplete,
-                                    'Average Order Wait Time': orders.averageOrderWaitTime, "Successful Orders":orders.successfulOrders,'Messages Sent': messages.messagesSent}})
+                                    'Average Order Wait Time': orders.averageOrderWaitTime, "Successful Orders":orders.successfulOrders,'Messages Sent': messages.messagesSent, 'Late Orders':orders.lateOrders}})
 
         server.port = 8521
         server.launch()

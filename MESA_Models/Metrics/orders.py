@@ -28,6 +28,22 @@ def successfulOrders(model):
     else:
         return total_successful_orders / total_orders
 
+def lateOrders(model):
+
+    late_orders = 0
+    complete_orders = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed):
+            complete_orders += 1
+            if(agent.completedDate > agent.dueDate):
+                late_orders +=1
+
+    if complete_orders == 0:
+        return 0
+    else:
+        return late_orders/complete_orders
+
     
 
 def averageOrderWaitTime(model):

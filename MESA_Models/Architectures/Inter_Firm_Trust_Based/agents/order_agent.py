@@ -1,4 +1,4 @@
-
+import random
 from mesa import Agent, Model
 
 
@@ -21,14 +21,14 @@ class OrderAgent(Agent):
     agentType = 'order'
 
     """An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model, productType,timeToComplete):
+    def __init__(self, unique_id, model,timeToComplete):
         super().__init__(unique_id, model)
-
-        self.productType = productType
 
         self.operations = []
         self.completedOperations = []
         self.timeToComplete = timeToComplete
+
+        self.productType = random.choice(['CNC','3D','IM'])
 
         self.lookingForResource = True
         self.completed = False
@@ -38,11 +38,14 @@ class OrderAgent(Agent):
         self.messagesSent = 0
         self.inOperation = False
         self.receivedOperations = False
+
+        self.dueDate = self.model.schedule.steps + random.randrange(40,60)
+        self.earliestStartDate = self.dueDate - timeToComplete
+
+        self.completedDate = 0
     
 
     def step(self):
-        
-        
         # Check if it needs to get it's operations
         # if(not self.receivedOperations):
         #     print('Order {0}, requesting operations'.format(self.unique_id))
@@ -53,7 +56,7 @@ class OrderAgent(Agent):
         #                 message = {'messageType':'request_operations','id':self.unique_id}
         #                 agent.receivedMessages.append(message)
         #                 self.model.grid.move_agent(self,agent.backlogCoordinates)
-                        
+
 
         # elif(not self.operations):
         #     # Order is completed 
