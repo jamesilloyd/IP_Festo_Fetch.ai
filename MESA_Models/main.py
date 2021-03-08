@@ -72,7 +72,7 @@ if __name__ == '__main__':
                                'Color': 'Red'}], data_collector_name='datacollector')
         server = ModularServer(TrustBasedArchitecture,
                                [grid, chart, chart4, chart2, chart5, chart3, chart6],
-                               'Inter-Firm',
+                               'Festo-Fetch.ai',
                                {'width': 40, 'height': 50, 'probability': 5, 'distributed':True,'operationTypes': operationTypes.operationTypes,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation, "Complete Orders": orders.ordersComplete,

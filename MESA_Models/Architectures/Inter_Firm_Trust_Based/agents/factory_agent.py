@@ -56,11 +56,14 @@ class FactoryAgent(Agent):
         return (self.coordinates[0],changedY)
     
     def step(self):
-        self.newOrders()
+        print(self.model.schedule.steps)
+        if self.model.schedule.steps > 1:
+            self.newOrders()
+
         self.checkOrderBacklog()
         if(self.distributed):
             self.checkRequests()
-            self.checkReceivedMessages()
+        self.checkReceivedMessages()
         # self.workThroughWIP()
         
             
@@ -70,17 +73,18 @@ class FactoryAgent(Agent):
         # Check backlog
         for agent in self.newOrdersBacklog:
             # If we have the capabilities we will carry it out (and a 20 % chance that we don't have capacity)
-            # TODO: add in capacity check 
-            if(agent.productType in self.capabilities and random.randrange(5) != 0):
-                
-                # Choose which resource to allocate it to
-                chosenMachineId = random.choice(self.capabilities[agent.productType]['ids'])
-                print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
+            capableMachineIds = self.capabilityCheck(agent)
 
+            # Choose which resource to allocate it to
+            if capableMachineIds:
+                chosenMachineId = random.choice(capableMachineIds)
+                
+                print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
                 for machineAgent in self.model.schedule.agents:
                     if machineAgent.unique_id == chosenMachineId:
                         machineAgent.backLogOrders.append(agent)
                         self.model.grid.move_agent(agent,machineAgent.backlogCoordinates)
+
             
             # If we don't have the capbailies we will outsource it
             elif(self.distributed):
@@ -116,7 +120,8 @@ class FactoryAgent(Agent):
                 # Send message to those ids
                 for agent in self.model.schedule.agents:
                     if agent.unique_id in self.requestsBacklog[key]['receivedIds'] and agent.unique_id != self.unique_id:
-                        message = Message(self.unique_id,'resourceRequest',orderId=backlogAgent.unique_id,capability=backlogAgent.productType)
+                        # TODO: feel uneasy adding the agent to the message payload, why aren't the orders doing the talking themselves?
+                        message = Message(self.unique_id,'resourceRequest',orderId=backlogAgent.unique_id,capability=backlogAgent.productType,orderAgent=backlogAgent)
                         agent.receivedMessages.append(message)
                         self.messagesSent += 1
                 
@@ -163,9 +168,13 @@ class FactoryAgent(Agent):
 
     def newOrders(self):
         # Give a 20% probability that a new order will arrive into the system
+        # Can only have orders that the company has resources for??? 
         number = random.randrange(5)
         if(number == 0):
-            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,random.randrange(5,10))
+            capabilities = []
+            for key in self.capabilities.keys():
+                capabilities.append(key)
+            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,random.randrange(5,10),capabilities)
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
@@ -196,10 +205,11 @@ class FactoryAgent(Agent):
 
             elif message.type == "resourceRequest":
                 print('Factory {} - received resource request for order {} from factory {}'.format(self.unique_id,message.orderId,message.fromId))
-                # Check whether we can carry out the operation (and random chance we can't)
-                if(message.capability in self.capabilities and random.randrange(5) != 0):
+                # Check whether we can carry out the operation
+                capableMachineIds = self.capabilityCheck(message.orderAgent)
+                if capableMachineIds:
                     price = random.randrange(100)
-                    chosenMachineId = random.choice(self.capabilities[message.capability]['ids'])
+                    chosenMachineId = random.choice(capableMachineIds)
                     print('Factory {} - can carry out order {} for €{} on machine {}'.format(self.unique_id,message.orderId,price,chosenMachineId))
                     returnMessage = Message(self.unique_id,'resourceRequestResponse',orderId=message.orderId,canCarryOutRequest=True,price=price,machineId=chosenMachineId)
                 else:
@@ -236,5 +246,29 @@ class FactoryAgent(Agent):
                         capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
                         agent.receivedMessages.append(capabilitiesMessage)
 
-
         self.receivedMessages.clear()
+
+
+
+
+    def capabilityCheck(self,agent):
+        capableMachines = []
+        if(agent.productType in self.capabilities):
+            # Ask the resources if they can carry it out
+            for machineAgent in self.model.schedule.agents:
+                if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
+
+                    if machineAgent.unique_id == 3:
+                        print('TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
+                        print('ORDER DUE DATE {}'.format(agent.dueDate))
+                        print('TIME TO COMPLETE ORDER {}'.format(agent.timeToComplete))
+                    if agent.dueDate - machineAgent.timeUntilFree > agent.timeToComplete:
+                        capableMachines.append(machineAgent.unique_id)
+                        machineAgent.timeUntilFree += agent.timeToComplete
+                        if machineAgent.unique_id == 3:
+                            print('CAN CARRY OUT ORDER')
+                            print('NEW TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
+
+
+
+        return capableMachines

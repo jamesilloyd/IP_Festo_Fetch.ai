@@ -11,6 +11,7 @@ def ordersComplete(model):
     return total_orders
 
 
+
 def successfulOrders(model):
 
     total_orders = 0

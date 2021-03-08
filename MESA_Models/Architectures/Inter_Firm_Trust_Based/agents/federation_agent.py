@@ -11,6 +11,7 @@ from .message import Message
 	- They may request information from orders and resources so they have a full-view of the system
 		○ This can allow orders or resources to have a schedule
 		○ But it is advice, not commands
+...Could be used to represent the MES, or shop floor control
 '''
 class FederationAgent(Agent):
     

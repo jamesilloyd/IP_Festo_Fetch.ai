@@ -1,5 +1,6 @@
 from mesa import Agent, Model
 from .message import Message
+import calendar
 
 '''
 Resource agent
@@ -33,6 +34,7 @@ class MachineAgent(Agent):
         self.order = None    
         self.messagesSent = 0
 
+        self.timeUntilFree = 0
         
         # Register the machine with the factory agents and what their capability is
         for agent in self.model.schedule.agents:
@@ -77,6 +79,10 @@ class MachineAgent(Agent):
                 
         else:
             self.timeFree += 1
+
+        if self.timeUntilFree < self.model.schedule.steps:
+            self.timeUntilFree = self.model.schedule.steps
+
 
         #Check for messages from the scheduler and respond with status and backlog (OR scheduler does this through live lookup)
 
