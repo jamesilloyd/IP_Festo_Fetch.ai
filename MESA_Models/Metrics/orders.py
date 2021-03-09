@@ -10,6 +10,16 @@ def ordersComplete(model):
 
     return total_orders
 
+def totalWIPSize(model):
+
+    totalWIPSize = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'machine'):
+            totalWIPSize += len(agent.backLogOrders)
+    
+    return totalWIPSize
+
 
 
 def successfulOrders(model):

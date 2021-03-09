@@ -17,7 +17,7 @@ class MachineAgent(Agent):
     agentType = 'machine'
 
 
-    def __init__(self, unique_id, model, typeOfOperation, coordinates, factoryId):
+    def __init__(self, unique_id, model, typeOfOperation, coordinates, factoryId, cost):
         super().__init__(unique_id, model)
         self.typeOfOperation = typeOfOperation
         # self.timeToComplete = timeToComplete
@@ -26,6 +26,7 @@ class MachineAgent(Agent):
         
         
         self.isOperating = False
+        self.cost = cost
         self.timeLeftOnOperation = 0
         self.timeFree = 0
         self.timeWorking = 0
@@ -33,7 +34,7 @@ class MachineAgent(Agent):
         self.backLogOrders = []
         self.order = None    
         self.messagesSent = 0
-
+        self.messagesReceived = 0
         self.timeUntilFree = 0
         
         # Register the machine with the factory agents and what their capability is
@@ -52,14 +53,13 @@ class MachineAgent(Agent):
         return (changedX,self.coordinates[1])
 
 
-    def step(self):
 
+    def step(self):
         # If it has an order in the backlog, start working on it 
         if (self.backLogOrders and not self.isOperating):
             self.order = self.backLogOrders[0]
             self.order.inOperation = True
             # TODO: may want to save results instead
-            self.backLogOrders.pop(0)
             self.model.grid.move_agent(self.order,self.coordinates)
             self.isOperating = True
             self.timeLeftOnOperation = self.order.timeToComplete
@@ -69,6 +69,7 @@ class MachineAgent(Agent):
             self.timeLeftOnOperation -= 1
             self.timeWorking += 1
             if(self.timeLeftOnOperation == 0):
+                self.backLogOrders.pop(0)
                 self.isOperating = False
                 # Add the operation to the completed pile
                 self.order.completed = True

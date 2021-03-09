@@ -7,8 +7,8 @@ import random
 # from .agents.order_agent import OrderAgent
 from .agents.machine_agent import MachineAgent
 from .agents.product_agent import ProductAgent
-from .agents.factory_agent import FactoryAgent
-from .agents.federation_agent import FederationAgent
+from .agents.factory_agent import TrustFactoryAgent,PROSAFactoryAgent
+from .agents.federation_agent import TrustFederationAgent,PROSAFederationAgent
 
 '''
 Trust-based resource sharing mechanism for distributed manufacturing
@@ -29,39 +29,42 @@ Trust-based resource sharing mechanism for distributed manufacturing
 '''
 
 factoriesAndCapabilities = [
-    [(25,25),['CNC','CNC','CNC']],
+    [(25,25),['MC','MC','MC']],
     [(10,9),['IM','IM']],
-    [(10,25),['3D','CNC','IM']],
+    [(10,25),['3D','MC','IM']],
     [(25,9),['3D']],
-    [(15,35),['3D','3D','CNC']],
-    [(30,35),['IM','3D','CNC']],
+    [(15,35),['3D','3D','MC']],
+    [(30,35),['IM','3D','MC']],
     ]
 
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, probability, operationTypes, distributed, model_reporters_dict = None):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,communicationMethod = 'Trust'):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
-        self.probability = probability
-        self.operationTypes = operationTypes
-
-
-
-        federationCentre = FederationAgent(1,self,(15,15))
+        
+        if communicationMethod == 'Trust':
+            federationCentre = TrustFederationAgent(1,self,(15,15))
+        else:
+            federationCentre = PROSAFederationAgent(1,self,(15,15))
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre,federationCentre.coordinates)
 
+        
         for factory in factoriesAndCapabilities:
             factoryNumber = self.schedule.get_agent_count() + 1
-            newFactoryAgent = FactoryAgent(factoryNumber,self,factory[0],distributed)
+            if communicationMethod == 'Trust':
+                newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed)
+            else:
+                newFactoryAgent = PROSAFactoryAgent(factoryNumber, self, factory[0], distributed)
             self.schedule.add(newFactoryAgent)
             self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
 
             incrementedYCoordinate = 2
             for capability in factory[1]:
                 coordinates = (factory[0][0] + 3,factory[0][1] - incrementedYCoordinate)
-                newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber)
+                newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber,1)
                 self.schedule.add(newMachine)
                 self.grid.place_agent(newMachine,newMachine.coordinates)
                 incrementedYCoordinate += 2
@@ -73,7 +76,7 @@ class TrustBasedArchitecture(Model):
         else:
             self.datacollector = DataCollector(
                 model_reporters = model_reporters_dict,
-                # agent_reporters = {"Wait time":individualOrderWaitTime}
+                agent_reporters = agent_reporters_dict
             )
     
     def step(self):
