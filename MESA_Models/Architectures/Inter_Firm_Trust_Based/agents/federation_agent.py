@@ -32,7 +32,7 @@ class TrustFederationAgent(Agent):
 
 
         
-    
+
     @property
     def backlogCoordinates(self):
         changedX = self.coordinates[0] - 1
@@ -45,65 +45,11 @@ class TrustFederationAgent(Agent):
         for message in self.receivedMessages:
             self.messagesReceived += 1
             messagesReceived += 1
-
-            if message.type == 'idsRequest':
-                print('Federator {} - received ids request from factory {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
-                if message.capability in self.factoryCapabilities:
-                    factoryIds = self.factoryCapabilities[message.capability]
-                else:
-                    factoryIds = []
-                
-        
-                newMessage = Message(self.unique_id,'idsResponse',requestedIds=factoryIds,orderId=message.orderId)
-                
-                for agent in self.model.schedule.agents:
-                    if agent.unique_id == message.fromId:
-                        agent.receivedMessages.append(newMessage)
-                        self.messagesSent += 1
-                        messagesSent += 1
-                else:
-                    # TODO: handle capability not existing
-                    pass
-                    
-            if message.type == 'announceCapabiliesFactory':
-                for capability in message.capabilities:
-                    if capability in self.factoryCapabilities:
-                        if(message.fromId not in self.factoryCapabilities[capability]):
-                            self.factoryCapabilities[capability].append(message.fromId)
-                    else:
-                        self.factoryCapabilities.update({capability:[message.fromId]})
-
-
-    
-        self.receivedMessages.clear()
-
-        if messagesSent > self.maxMessagesSent:
-            self.maxMessagesSent = messagesSent
-        if messagesReceived > self.maxMessagesReceived:
-            self.maxMessagesReceived = messagesReceived
-
-
-
-class PROSAFederationAgent(TrustFederationAgent):
-    
-
-    def __init__(self, unique_id, model, coordinates):
-        super().__init__(unique_id, model,coordinates)
-        
-    
-    
-    def step(self):
-        messagesReceived = 0
-        messagesSent = 0
-        for message in self.receivedMessages:
-            self.messagesReceived += 1
-            messagesReceived += 1
             if message.type == 'idsRequest':
                 print('Federator {} - received ids request from order {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
+                factoryIds = []
                 if message.capability in self.factoryCapabilities:
-                    factoryIds = self.factoryCapabilities[message.capability]
-                else:
-                    factoryIds = []
+                    factoryIds.extend(self.factoryCapabilities[message.capability])
                 
         
                 newMessage = Message(self.unique_id,'idsResponse',requestedIds=factoryIds)
@@ -134,8 +80,6 @@ class PROSAFederationAgent(TrustFederationAgent):
             self.maxMessagesSent = messagesSent
         if messagesReceived > self.maxMessagesReceived:
             self.maxMessagesReceived = messagesReceived
-
-
 
 
     

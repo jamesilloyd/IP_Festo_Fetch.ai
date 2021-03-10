@@ -68,6 +68,19 @@ class MachineAgent(Agent):
             self.isOperating = True
             self.timeLeftOnOperation = self.order.timeToComplete * self.order.quantity
 
+        
+        for message in self.receivedMessages:
+            if message.type == 'unsuccessfulBid':
+                print('Machine {} - received unsuccessful bid notice from order {}'.format(self.unique_id,message.fromId))
+                
+                self.timeUntilFree -= message.orderAgent.quantity * message.orderAgent.timeToComplete
+        
+        self.receivedMessages.clear()
+        
+        # print('Machine {} time till free = {}'.format(self.unique_id,self.timeUntilFree))
+
+                
+
         # Operate as normal
         if(self.isOperating):
             self.timeLeftOnOperation -= 1

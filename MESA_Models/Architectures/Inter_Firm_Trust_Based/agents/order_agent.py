@@ -23,7 +23,7 @@ class TrustOrderAgent(Agent):
     agentType = 'order'
 
     """An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model,facotryCapabilities):
+    def __init__(self, unique_id, model,facotryCapabilities,factoryId):
         super().__init__(unique_id, model)
 
         self.operations = []
@@ -32,6 +32,13 @@ class TrustOrderAgent(Agent):
 
         self.lookingForResource = True
         self.completed = False
+
+        self.factoryId = factoryId
+
+        self.receivedOffers = []
+
+        self.status = 'new'
+
 
         self.successful = True
         self.waitTime = 0
@@ -46,7 +53,7 @@ class TrustOrderAgent(Agent):
         # From data requests this seems to be the standard size of orders
         self.quantity = random.randrange(operationDictionary[self.productType]['usualQuantity'][0],operationDictionary[self.productType]['usualQuantity'][1])
         self.timeToComplete = random.randrange(operationDictionary[self.productType]['unitOperationTimes'][0],operationDictionary[self.productType]['unitOperationTimes'][1])
-        self.dueDate = self.model.schedule.steps + random.randrange(self.timeToComplete + 1,self.timeToComplete + 5) * self.quantity
+        self.dueDate = self.model.schedule.steps + random.randrange(self.timeToComplete ,self.timeToComplete + 5) * self.quantity
         self.latestStartDate = self.dueDate - self.timeToComplete
 
         self.completedDate = 0
@@ -56,36 +63,6 @@ class TrustOrderAgent(Agent):
     
     
     
-    def step(self):
-
-        if(self.inOperation or self.completed):
-            # In operation or completed
-            pass
-
-        else:
-            # Waiting for operation
-            self.waitTime += 1
-                
-
-
-class PROSAOrderAgent(TrustOrderAgent):
-
-    agentType = 'order'
-
-    """An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model,facotryCapabilities,factoryId):
-        super().__init__(unique_id, model,facotryCapabilities)
-
-        
-        self.factoryId = factoryId
-
-        self.receivedOffers = []
-        self.receivedOperations = False
-
-        self.status = 'new'
-
-    
-
     def step(self):
         messagesSent = 0
         messagesReceived = 0
@@ -107,13 +84,21 @@ class PROSAOrderAgent(TrustOrderAgent):
             
             elif message.type == "idsResponse":
                 # Check if the requestedIds are empty or not
-                if(message.requestedIds):
+                print(message.requestedIds)
+                print(self.factoryId)
+                receivedIds = []
+                for factoryId in message.requestedIds:
+                    if factoryId != self.factoryId:
+                        receivedIds.append(factoryId)
+
+                print(receivedIds)
+                if(receivedIds):
                     print('Order {} - received request ids'.format(self.unique_id))
                     self.status = 'receivedIds'
                     # Send messages out to those ids
-                    print('Order {} - Sending resource requests to {}'.format(self.unique_id,message.requestedIds))
+                    print('Order {} - Sending resource requests to {}'.format(self.unique_id,receivedIds))
                     for factoryAgent in self.model.schedule.agents:
-                        if factoryAgent.unique_id in message.requestedIds and factoryAgent.unique_id != self.factoryId:
+                        if factoryAgent.unique_id in receivedIds:
                             # TODO: feel uneasy about dropping the object in the message
                             message = Message(self.unique_id,'resourceRequest',capability=self.productType,orderAgent=self)
                             factoryAgent.receivedMessages.append(message)
@@ -127,7 +112,7 @@ class PROSAOrderAgent(TrustOrderAgent):
                     self.completed = True
                     self.successful = False
                     self.status = "Completed"
-                    for agent in model.schedule.agents:
+                    for agent in self.model.schedule.agents:
                         if agent.unique_id == self.factoryId:
                             self.model.grid.move_agent(self,agent.unsuccessfulOrderCoordinates)
                     
@@ -150,7 +135,6 @@ class PROSAOrderAgent(TrustOrderAgent):
                 print('Order {} - Choosing winning bid'.format(self.unique_id))
 
                 # If the offers list is empty then send the order to the bad pile
-                print(self.receivedOffers)
                 if not self.receivedOffers:
                     print('Order {} - Recieved no viable offers'.format(self.unique_id))
                     self.status = 'Completed'
@@ -163,21 +147,29 @@ class PROSAOrderAgent(TrustOrderAgent):
                 else:
                     lowestBid = 101
                     factoryId = 0
-                    
+
+
+                    listOfMachineIDs = []
                     for offer in self.receivedOffers:
+                        listOfMachineIDs.append(offer['machine'])
                         if offer['price'] < lowestBid:
                             lowestBid = offer['price']
                             factoryId = offer['factory']
                             machineId = offer['machine']
-                    print('Order {0} - Chosen factory {1} at a bid of €{2}'.format(self.unique_id,factoryId,lowestBid))
+                    print('Order {0} - Chosen factory {1} - machine {3} at a bid of €{2}'.format(self.unique_id,factoryId,lowestBid,machineId))
                     self.status = 'successfullyOutsourced'
-                
+
                     for agent in self.model.schedule.agents:
                         if agent.unique_id == machineId:
                             self.model.grid.move_agent(self,agent.backlogCoordinates)
                             agent.backLogOrders.append(self)
                             self.messagesSent += 1
                             messagesSent += 1
+                        # Need to let the other machines know they were unsuccessful so that they can readjust their timeTillFree
+                        elif agent.unique_id in listOfMachineIDs:
+                            unsuccessfulMessage = Message(self.unique_id,'unsuccessfulBid',orderAgent=self)
+                            agent.receivedMessages.append(unsuccessfulMessage)
+
                     
 
             else:
@@ -195,6 +187,7 @@ class PROSAOrderAgent(TrustOrderAgent):
 
         else:
             # Waiting for operation
+            print('ORDER {} WAITING {}'.format(self.unique_id,self.waitTime))
             self.waitTime += 1
                 
 
@@ -250,12 +243,3 @@ class PROSAOrderAgent(TrustOrderAgent):
         #             self.model.grid.move_agent(self,chosenMachine['machineAgent'].backlogCoordinates)
         #             chosenMachine['machineAgent'].backLogOrders.append(self)
         #             self.lookingForResource = False
-
-
-        
-                
-
-
-               
-
-               

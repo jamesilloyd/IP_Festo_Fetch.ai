@@ -7,8 +7,8 @@ import random
 # from .agents.order_agent import OrderAgent
 from .agents.machine_agent import MachineAgent
 from .agents.product_agent import ProductAgent
-from .agents.factory_agent import TrustFactoryAgent,PROSAFactoryAgent
-from .agents.federation_agent import TrustFederationAgent,PROSAFederationAgent
+from .agents.factory_agent import TrustFactoryAgent
+from .agents.federation_agent import TrustFederationAgent
 
 '''
 Trust-based resource sharing mechanism for distributed manufacturing
@@ -37,41 +37,16 @@ factoriesAndCapabilities = [
     [(30,35),['IM','3D_SLS','CNC']],
     ]
 
-# factoriesAndCapabilities = [
-#     [(2,47),['CNC','CNC','CNC']],
-#     [(2,39),['IM','IM']],
-#     [(2,32),['3D','CNC','IM']],
-#     [(2,22),['IM','3D','CNC']],
-#     [(2,12),['3D','3D','CNC']],
-#     [(2,3),['3D']],
-    
-    
-#     [(10,47),['CNC','CNC','CNC']],
-#     [(10,39),['IM','IM']],
-#     [(10,32),['3D','CNC','IM']],
-#     [(10,22),['IM','3D','CNC']],
-#     [(10,12),['3D','3D','CNC']],
-#     [(10,3),['3D']],
-
-#     [(20,47),['CNC','CNC','CNC']],
-#     [(20,39),['IM','IM']],
-#     [(20,32),['3D','CNC','IM']],
-#     [(20,22),['IM','3D','CNC']],
-#     [(20,12),['3D','3D','CNC']],
-#     [(20,3),['3D']],
-#     ]
-
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,communicationMethod = 'Trust',newOrderProbability = 5,quantity = 1):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
         
-        if communicationMethod == 'Trust':
-            federationCentre = TrustFederationAgent(1,self,(15,15))
-        else:
-            federationCentre = PROSAFederationAgent(1,self,(15,15))
+        
+        federationCentre = TrustFederationAgent(1,self,(15,15))
+        
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre,federationCentre.coordinates)
 
@@ -79,10 +54,9 @@ class TrustBasedArchitecture(Model):
             quantity -= 1
             for factory in factoriesAndCapabilities:
                 factoryNumber = self.schedule.get_agent_count() + 1
-                if communicationMethod == 'Trust':
-                    newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed,newOrderProbability)
-                else:
-                    newFactoryAgent = PROSAFactoryAgent(factoryNumber, self, factory[0], distributed,newOrderProbability)
+                
+                newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed,newOrderProbability)
+                
                 self.schedule.add(newFactoryAgent)
                 self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
 

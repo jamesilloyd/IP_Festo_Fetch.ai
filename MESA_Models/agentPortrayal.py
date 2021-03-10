@@ -50,6 +50,6 @@ def agent_portrayal(agent):
                 'text': 'Factory',
                 'text_color':'black',
                 "Layer": 0,
-                "w": 2,'h':2}
+                "w": 3,'h':3}
     
     return portrayal

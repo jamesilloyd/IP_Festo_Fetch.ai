@@ -10,7 +10,7 @@ import os
 import operationTypes
 import random
 
-runBatch = True
+runBatch = False
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -24,7 +24,7 @@ if __name__ == '__main__':
         #   - additional use could be for reducing run time for model reporters
         fixed_params = {'width': 40, 'height': 40, 'distributed':True}
 
-        variable_params = {'communicationMethod':['Trust','PROSA'],'quantity':range(1,5)}
+        variable_params = {'quantity':range(1,5)}
         # 'newOrderProbability':range(2,10)}
 
         batch_run = BatchRunner(
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         server = ModularServer(TrustBasedArchitecture,
                                [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                                'Festo-Fetch.ai',
-                               {'width': 50, 'height': 50, 'distributed':True,'communicationMethod':'PROSA',
+                               {'width': 50, 'height': 50, 'distributed':True,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,
