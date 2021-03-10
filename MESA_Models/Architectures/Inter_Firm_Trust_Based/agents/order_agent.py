@@ -1,6 +1,7 @@
 import random
 from mesa import Agent, Model
 from .message import Message
+from .operations import operationDictionary
 
 
 '''
@@ -22,22 +23,16 @@ class TrustOrderAgent(Agent):
     agentType = 'order'
 
     """An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model,timeToComplete,facotryCapabilities,quantity):
+    def __init__(self, unique_id, model,facotryCapabilities):
         super().__init__(unique_id, model)
 
         self.operations = []
         self.completedOperations = []
-        self.timeToComplete = timeToComplete
-
-        
-
         self.productType = random.choice(facotryCapabilities)
 
         self.lookingForResource = True
         self.completed = False
 
-        self.quantity = quantity
-        
         self.successful = True
         self.waitTime = 0
         self.receivedMessages = []
@@ -45,15 +40,21 @@ class TrustOrderAgent(Agent):
         self.messagesReceived = 0
         self.inOperation = False
         self.receivedOperations = False
-
         
-
         self.negotiationTimer = 0
 
-        self.dueDate = self.model.schedule.steps + random.randrange(10,20)
-        self.earliestStartDate = self.dueDate - timeToComplete
+        # From data requests this seems to be the standard size of orders
+        self.quantity = random.randrange(operationDictionary[self.productType]['usualQuantity'][0],operationDictionary[self.productType]['usualQuantity'][1])
+        self.timeToComplete = random.randrange(operationDictionary[self.productType]['unitOperationTimes'][0],operationDictionary[self.productType]['unitOperationTimes'][1])
+        self.dueDate = self.model.schedule.steps + random.randrange(self.timeToComplete + 1,self.timeToComplete + 5) * self.quantity
+        self.latestStartDate = self.dueDate - self.timeToComplete
 
         self.completedDate = 0
+
+        self.maxMessagesReceived = 0
+        self.maxMessagesSent = 0
+    
+    
     
     def step(self):
 
@@ -67,48 +68,31 @@ class TrustOrderAgent(Agent):
                 
 
 
-class PROSAOrderAgent(Agent):
+class PROSAOrderAgent(TrustOrderAgent):
 
     agentType = 'order'
 
     """An agent with fixed initial wealth."""
-    def __init__(self, unique_id, model,timeToComplete,facotryCapabilities,quantity,factoryId):
-        super().__init__(unique_id, model)
+    def __init__(self, unique_id, model,facotryCapabilities,factoryId):
+        super().__init__(unique_id, model,facotryCapabilities)
 
-        self.operations = []
-        self.completedOperations = []
-        self.timeToComplete = timeToComplete
+        
         self.factoryId = factoryId
 
-        self.productType = random.choice(facotryCapabilities)
-
-        self.lookingForResource = True
-        self.completed = False
-
-        self.quantity = quantity
-        
-        self.successful = True
-        self.waitTime = 0
-        self.receivedMessages = []
-        self.messagesSent = 0
-        self.messagesReceived = 0
-        self.inOperation = False
         self.receivedOffers = []
         self.receivedOperations = False
 
-        self.dueDate = self.model.schedule.steps + random.randrange(10,20)
-        self.earliestStartDate = self.dueDate - timeToComplete
-
         self.status = 'new'
 
-        self.completedDate = 0
     
 
-    # TODO: let's give these boys something to do 
     def step(self):
+        messagesSent = 0
+        messagesReceived = 0
 
         for message in self.receivedMessages:
             self.messagesReceived += 1
+            messagesReceived += 1
             if message.type == 'findResources':
                 # Initial factory cannot complete me so I need to find other ids
                 print('Order {} - Asking Federator for ids'.format(self.unique_id,))
@@ -118,6 +102,7 @@ class PROSAOrderAgent(Agent):
                         message = Message(self.unique_id,'idsRequest',capability=self.productType,orderId=self.unique_id)
                         agent.receivedMessages.append(message)
                         self.messagesSent += 1
+                        messagesSent += 1
                 self.status = 'waitingForResponseFromFederator'
             
             elif message.type == "idsResponse":
@@ -133,6 +118,7 @@ class PROSAOrderAgent(Agent):
                             message = Message(self.unique_id,'resourceRequest',capability=self.productType,orderAgent=self)
                             factoryAgent.receivedMessages.append(message)
                             self.messagesSent += 1
+                            messagesSent += 1
                     self.status = 'waitingForResponseFromFactories'
 
                 else:
@@ -191,12 +177,17 @@ class PROSAOrderAgent(Agent):
                             self.model.grid.move_agent(self,agent.backlogCoordinates)
                             agent.backLogOrders.append(self)
                             self.messagesSent += 1
+                            messagesSent += 1
                     
 
             else:
                 self.negotiationTimer -= 1
                 print('Order {} - Waiting to receive all bids -  {} steps'.format(self.unique_id, self.negotiationTimer))
         
+        if messagesSent > self.maxMessagesSent:
+            self.maxMessagesSent = messagesSent
+        if messagesReceived > self.maxMessagesReceived:
+            self.maxMessagesReceived = messagesReceived
         
         if(self.inOperation or self.completed):
             # In operation or completed

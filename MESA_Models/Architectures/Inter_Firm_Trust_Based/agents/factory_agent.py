@@ -12,7 +12,7 @@ class TrustFactoryAgent(Agent):
     
     agentType = 'factory'
 
-    def __init__(self, unique_id, model, coordinates,distributed):
+    def __init__(self, unique_id, model, coordinates,distributed, newOrderProbability):
         super().__init__(unique_id, model)
         
         self.coordinates = coordinates
@@ -26,9 +26,14 @@ class TrustFactoryAgent(Agent):
         self.productAgentIds = []
 
         self.newOrdersBacklog = []
+
+        self.newOrderProbability = newOrderProbability
         self.requestsBacklog = {}
         
         self.distributed = distributed
+
+        self.maxMessagesReceived = 0
+        self.maxMessagesSent = 0
     
 
     @property
@@ -57,15 +62,22 @@ class TrustFactoryAgent(Agent):
         return (self.coordinates[0],changedY)
     
     def step(self):
-        print(self.model.schedule.steps)
+        messagesSent = 0
+        messagesReceived = 0
         if self.model.schedule.steps > 1:
             self.newOrders()
 
         self.checkOrderBacklog()
+        self.checkReceivedMessages(messagesReceived,messagesSent)
+        
         if(self.distributed):
-            self.checkRequests()
-        self.checkReceivedMessages()
-        # self.workThroughWIP()
+            self.checkRequests(messagesSent)
+        
+
+        if messagesSent > self.maxMessagesSent:
+            self.maxMessagesSent = messagesSent
+        if messagesReceived > self.maxMessagesReceived:
+            self.maxMessagesReceived = messagesReceived
         
             
 
@@ -100,7 +112,7 @@ class TrustFactoryAgent(Agent):
         self.newOrdersBacklog.clear()
 
 
-    def checkRequests(self):
+    def checkRequests(self,messagesSent):
         # Check requests backlog
         for key in self.requestsBacklog.keys():
             backlogAgent = self.requestsBacklog[key]['agent']
@@ -112,20 +124,9 @@ class TrustFactoryAgent(Agent):
                         message = Message(self.unique_id,'idsRequest',capability=backlogAgent.productType,orderId=backlogAgent.unique_id)
                         agent.receivedMessages.append(message)
                         self.messagesSent += 1
+                        messagesSent += 1
                 
                 self.requestsBacklog[key]['status'] = 'waitingForResponseFromFederator'
-
-            elif self.requestsBacklog[key]['status'] == 'receivedIds':
-                print('Factory {} - Sending resource requests for order {}'.format(self.unique_id,backlogAgent.unique_id))
-                # Send message to those ids
-                for agent in self.model.schedule.agents:
-                    if agent.unique_id in self.requestsBacklog[key]['receivedIds'] and agent.unique_id != self.unique_id:
-                        # TODO: feel uneasy adding the agent to the message payload, why aren't the orders doing the talking themselves?
-                        message = Message(self.unique_id,'resourceRequest',orderId=backlogAgent.unique_id,capability=backlogAgent.productType,orderAgent=backlogAgent)
-                        agent.receivedMessages.append(message)
-                        self.messagesSent += 1
-                
-                self.requestsBacklog[key]['status'] = 'waitingForResponseFromFactories'
 
 
             elif self.requestsBacklog[key]['status'] == 'receivedOffers':
@@ -169,23 +170,24 @@ class TrustFactoryAgent(Agent):
     def newOrders(self):
         # Give a 20% probability that a new order will arrive into the system
         # Can only have orders that the company has resources for??? 
-        number = random.randrange(5)
+        number = random.randrange(self.newOrderProbability)
         if(number == 0):
             capabilities = []
             for key in self.capabilities.keys():
                 capabilities.append(key)
-            orderAgent = TrustOrderAgent(self.model.schedule.get_agent_count()+1,self.model,random.randrange(5,10),capabilities,10)
+            orderAgent = TrustOrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities)
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
-            print('Factory {} - New order received for {}'.format(self.unique_id,orderAgent.productType))
+            print('Factory {} - New order {} received for {} of quantity {} with due date {}'.format(self.unique_id,orderAgent.unique_id,orderAgent.productType,orderAgent.quantity,orderAgent.dueDate))
     
 
 
-    def checkReceivedMessages(self):
+    def checkReceivedMessages(self,messagesReceived,messagesSent):
         # check received messages
         for message in self.receivedMessages:
             self.messagesReceived += 1
+            messagesReceived += 1
             if message.type == "idsResponse":
                 # Check if the requestedIds are empty or not
                 if(message.requestedIds):
@@ -193,6 +195,20 @@ class TrustFactoryAgent(Agent):
                     print('Factory {} - received request ids for order {}'.format(self.unique_id,message.orderId))
                     self.requestsBacklog[message.orderId]['status'] = 'receivedIds'
                     self.requestsBacklog[message.orderId]['receivedIds'] = message.requestedIds
+                    
+                    # Find the order agent
+                    orderAgent = self.requestsBacklog[message.orderId]['agent']
+                    print('Factory {} - Sending resource requests for order {}'.format(self.unique_id,orderAgent.unique_id))
+                    # Send message to those factory ids
+                    for agent in self.model.schedule.agents:
+                        if agent.unique_id in message.requestedIds and agent.unique_id != self.unique_id:
+                            # TODO: feel uneasy adding the agent to the message payload, why aren't the orders doing the talking themselves?
+                            message = Message(self.unique_id,'resourceRequest',orderId=orderAgent.unique_id,capability=orderAgent.productType,orderAgent=orderAgent)
+                            agent.receivedMessages.append(message)
+                            self.messagesSent += 1
+                            messagesSent += 1
+                
+
                 else:
                     # There are no factories with this capability 
                     print('Factory {} - received no compatible ids for order {}'.format(self.unique_id,message.orderId))
@@ -221,6 +237,8 @@ class TrustFactoryAgent(Agent):
                 for agent in self.model.schedule.agents:
                     if agent.unique_id == message.fromId:
                         agent.receivedMessages.append(returnMessage)
+                        self.messagesSent +=1
+                        messagesSent += 1
             
             elif message.type == 'resourceRequestResponse':
                 # add it to the hashmap 
@@ -246,6 +264,8 @@ class TrustFactoryAgent(Agent):
                     if agent.agentType == 'federator':
                         capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
                         agent.receivedMessages.append(capabilitiesMessage)
+                        messagesSent += 1
+                        self.messagesSent +=1
 
         self.receivedMessages.clear()
 
@@ -260,25 +280,18 @@ class TrustFactoryAgent(Agent):
             for machineAgent in self.model.schedule.agents:
                 if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
 
-                    # if machineAgent.unique_id == 3:
-                        # print('TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
-                        # print('ORDER DUE DATE {}'.format(agent.dueDate))
-                        # print('TIME TO COMPLETE ORDER {}'.format(agent.timeToComplete))
-                    if agent.dueDate - machineAgent.timeUntilFree > agent.timeToComplete:
+                    if agent.dueDate - machineAgent.timeUntilFree > agent.timeToComplete * agent.quantity:
                         capableMachines.append(machineAgent.unique_id)
-                        machineAgent.timeUntilFree += agent.timeToComplete
-                        # if machineAgent.unique_id == 3:
-                            # print('CAN CARRY OUT ORDER')
-                            # print('NEW TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
-
-
+                        machineAgent.timeUntilFree += agent.timeToComplete * agent.quantity
 
         return capableMachines
 
 
 
 
-class PROSAFactoryAgent(Agent):
+
+
+class PROSAFactoryAgent(TrustFactoryAgent):
 
     '''This factory agent does not coordinate the order agent's activities
         instead it tells the order agent the earliest date it can be produced 
@@ -286,57 +299,24 @@ class PROSAFactoryAgent(Agent):
 
     agentType = 'factory'
 
-    def __init__(self, unique_id, model, coordinates,distributed):
-        super().__init__(unique_id, model)
+    def __init__(self, unique_id, model, coordinates,distributed,newOrderProbability):
+        super().__init__(unique_id, model,coordinates,distributed,newOrderProbability)
         
-        self.coordinates = coordinates
 
-        self.capabilities = {}
-        self.receivedMessages = []
-        self.messagesSent = 0
-        self.messagesReceived = 0
-        
-        self.scheduleStaffIds = []
-        self.productAgentIds = []
-
-        self.newOrdersBacklog = []
-        
-        self.distributed = distributed
-    
-
-    @property
-    def WIPBacklogCoordinates(self):
-        changedX = self.coordinates[0] - 2
-        return (changedX,self.coordinates[1])
-
-    @property
-    def WIPCoordinates(self):
-        changedX = self.coordinates[0] - 1
-        return (changedX,self.coordinates[1])
-
-    @property
-    def newOrderCoordinates(self):
-        changedX = self.coordinates[0] - 2
-        return (changedX,self.coordinates[1])
-
-    @property
-    def completedOrderCoordinates(self):
-        changedY = self.coordinates[1] - 2
-        return (self.coordinates[0],changedY)
-    
-    @property
-    def unsuccessfulOrderCoordinates(self):
-        changedY = self.coordinates[1] + 2
-        return (self.coordinates[0],changedY)
-    
-    
 
     def step(self):
+        messagesSent = 0
+        messagesReceived = 0
         if self.model.schedule.steps > 1:
             self.newOrders()
 
         self.checkOrderBacklog()
-        self.checkReceivedMessages()
+        self.checkReceivedMessages(messagesReceived,messagesSent)
+
+        if messagesSent > self.maxMessagesSent:
+            self.maxMessagesSent = messagesSent
+        if messagesReceived > self.maxMessagesReceived:
+            self.maxMessagesReceived = messagesReceived
         
 
     # DONE
@@ -349,7 +329,6 @@ class PROSAFactoryAgent(Agent):
             # Choose which resource to allocate it to
             if capableMachineIds:
                 chosenMachineId = random.choice(capableMachineIds)
-                
                 print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
                 for machineAgent in self.model.schedule.agents:
                     if machineAgent.unique_id == chosenMachineId:
@@ -362,6 +341,7 @@ class PROSAFactoryAgent(Agent):
                 print('Factory {} - Order {} needs to be outsourced'.format(self.unique_id,agent.unique_id))
                 newMessage = Message(self.unique_id,'findResources')
                 agent.receivedMessages.append(newMessage)
+                self.messagesSent += 1
                 # Remove the agent from the backlog
                 self.newOrdersBacklog.remove(agent)
             else:
@@ -373,69 +353,30 @@ class PROSAFactoryAgent(Agent):
         self.newOrdersBacklog.clear()
 
 
-    def checkRequests(self):
-        # Check requests backlog
-        for key in self.requestsBacklog.keys():
-            backlogAgent = self.requestsBacklog[key]['agent']
-
-            if self.requestsBacklog[key]['status'] == 'receivedOffers':
-                
-                if self.requestsBacklog[key]['timer'] == 0:
-                    print('Factory {} - Choosing winning bid for order {}'.format(self.unique_id,backlogAgent.unique_id))
-
-                    # If the offers list is empty then send the order to the bad pile
-                    if not self.requestsBacklog[key]['offers']:
-                        print('Factory {} - Recieved no viable offers for order {}'.format(self.unique_id,key))
-                        self.requestsBacklog[key]['status'] = 'unsuccessful'
-                        self.model.grid.move_agent(backlogAgent,self.unsuccessfulOrderCoordinates)
-                        backlogAgent.completed = True
-                        backlogAgent.successful = False
-                        
-
-                    else:
-                        lowestBid = 101
-                        factoryId = 0
-                        
-                        for offer in self.requestsBacklog[key]['offers']:
-                            if offer['price'] < lowestBid:
-                                lowestBid = offer['price']
-                                factoryId = offer['factory']
-                                machineId = offer['machine']
-                        print('Factory {0} - Chosen factory {1} for order {2} at a bid of {3}'.format(self.unique_id,factoryId,key,lowestBid))
-                        self.requestsBacklog[key]['status'] = 'successfullyOutsourced'
-
-                        for agent in self.model.schedule.agents:
-                            if agent.unique_id == machineId:
-                                self.model.grid.move_agent(backlogAgent,agent.backlogCoordinates)
-                                agent.backLogOrders.append(backlogAgent)
-                                self.messagesSent += 1
-
-                else:
-                    self.requestsBacklog[key]['timer'] -= 1
-                    print('Factory {} - Waiting to receive all bids -  {} steps'.format(self.unique_id, self.requestsBacklog[key]['timer']))
-                    
 
     # DONE
     def newOrders(self):
         # Give a 20% probability that a new order will arrive into the system
         # Can only have orders that the company has resources for??? 
-        number = random.randrange(5)
+        number = random.randrange(self.newOrderProbability)
         if(number == 0):
             capabilities = []
             for key in self.capabilities.keys():
                 capabilities.append(key)
-            orderAgent = PROSAOrderAgent(self.model.schedule.get_agent_count()+1,self.model,random.randrange(5,10),capabilities,random.randrange(5,25),self.unique_id)
+                
+            orderAgent = PROSAOrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities,self.unique_id)
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
-            print('Factory {} - New order received for {}'.format(self.unique_id,orderAgent.productType))
+            print('Factory {} - New order {} received for {} of quantity {} with due date {}'.format(self.unique_id,orderAgent.unique_id,orderAgent.productType,orderAgent.quantity,orderAgent.dueDate))
     
 
     # DONE
-    def checkReceivedMessages(self):
+    def checkReceivedMessages(self,messagesReceived,messagesSent):
         # check received messages
         for message in self.receivedMessages:
             self.messagesReceived += 1
+            messagesReceived +=1
 
 
             if message.type == "resourceRequest":
@@ -455,6 +396,8 @@ class PROSAFactoryAgent(Agent):
                 for agent in self.model.schedule.agents:
                     if agent.unique_id == message.fromId:
                         agent.receivedMessages.append(returnMessage)
+                        self.messagesSent += 1 
+                        messagesSent +=1
             
             elif message.type == 'accounceCapabilitiesMachine':
 
@@ -469,31 +412,8 @@ class PROSAFactoryAgent(Agent):
                     if agent.agentType == 'federator':
                         capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
                         agent.receivedMessages.append(capabilitiesMessage)
+                        self.messagesSent += 1
+                        messagesSent +=1
 
         self.receivedMessages.clear()
 
-
-
-    # TODO: this should probably be carried out by the machine ... depends on MES integration
-    # DONE
-    def capabilityCheck(self,agent):
-        capableMachines = []
-        if(agent.productType in self.capabilities):
-            # Ask the resources if they can carry it out
-            for machineAgent in self.model.schedule.agents:
-                if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
-
-                    # if machineAgent.unique_id == 3:
-                        # print('TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
-                        # print('ORDER DUE DATE {}'.format(agent.dueDate))
-                        # print('TIME TO COMPLETE ORDER {}'.format(agent.timeToComplete))
-                    if agent.dueDate - machineAgent.timeUntilFree > agent.timeToComplete:
-                        capableMachines.append(machineAgent.unique_id)
-                        machineAgent.timeUntilFree += agent.timeToComplete
-                        # if machineAgent.unique_id == 3:
-                            # print('CAN CARRY OUT ORDER')
-                            # print('NEW TIME UNTIL NEXT FREE {}'.format(machineAgent.timeUntilFree))
-
-
-
-        return capableMachines

@@ -29,17 +29,41 @@ Trust-based resource sharing mechanism for distributed manufacturing
 '''
 
 factoriesAndCapabilities = [
-    [(25,25),['MC','MC','MC']],
+    [(25,25),['CNC','CNC','CNC']],
     [(10,9),['IM','IM']],
-    [(10,25),['3D','MC','IM']],
-    [(25,9),['3D']],
-    [(15,35),['3D','3D','MC']],
-    [(30,35),['IM','3D','MC']],
+    [(10,25),['3D_SLS','CNC','IM']],
+    [(25,9),['3D_FDM']],
+    [(15,35),['3D_DMLS','3D_FDM','CNC']],
+    [(30,35),['IM','3D_SLS','CNC']],
     ]
+
+# factoriesAndCapabilities = [
+#     [(2,47),['CNC','CNC','CNC']],
+#     [(2,39),['IM','IM']],
+#     [(2,32),['3D','CNC','IM']],
+#     [(2,22),['IM','3D','CNC']],
+#     [(2,12),['3D','3D','CNC']],
+#     [(2,3),['3D']],
+    
+    
+#     [(10,47),['CNC','CNC','CNC']],
+#     [(10,39),['IM','IM']],
+#     [(10,32),['3D','CNC','IM']],
+#     [(10,22),['IM','3D','CNC']],
+#     [(10,12),['3D','3D','CNC']],
+#     [(10,3),['3D']],
+
+#     [(20,47),['CNC','CNC','CNC']],
+#     [(20,39),['IM','IM']],
+#     [(20,32),['3D','CNC','IM']],
+#     [(20,22),['IM','3D','CNC']],
+#     [(20,12),['3D','3D','CNC']],
+#     [(20,3),['3D']],
+#     ]
 
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,communicationMethod = 'Trust'):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,communicationMethod = 'Trust',newOrderProbability = 5,quantity = 1):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -51,23 +75,24 @@ class TrustBasedArchitecture(Model):
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre,federationCentre.coordinates)
 
-        
-        for factory in factoriesAndCapabilities:
-            factoryNumber = self.schedule.get_agent_count() + 1
-            if communicationMethod == 'Trust':
-                newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed)
-            else:
-                newFactoryAgent = PROSAFactoryAgent(factoryNumber, self, factory[0], distributed)
-            self.schedule.add(newFactoryAgent)
-            self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
+        while quantity != 0:
+            quantity -= 1
+            for factory in factoriesAndCapabilities:
+                factoryNumber = self.schedule.get_agent_count() + 1
+                if communicationMethod == 'Trust':
+                    newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed,newOrderProbability)
+                else:
+                    newFactoryAgent = PROSAFactoryAgent(factoryNumber, self, factory[0], distributed,newOrderProbability)
+                self.schedule.add(newFactoryAgent)
+                self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
 
-            incrementedYCoordinate = 2
-            for capability in factory[1]:
-                coordinates = (factory[0][0] + 3,factory[0][1] - incrementedYCoordinate)
-                newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber,1)
-                self.schedule.add(newMachine)
-                self.grid.place_agent(newMachine,newMachine.coordinates)
-                incrementedYCoordinate += 2
+                incrementedYCoordinate = 2
+                for capability in factory[1]:
+                    coordinates = (factory[0][0] + 3,factory[0][1] - incrementedYCoordinate)
+                    newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber,1)
+                    self.schedule.add(newMachine)
+                    self.grid.place_agent(newMachine,newMachine.coordinates)
+                    incrementedYCoordinate += 2
                 
             
 

@@ -18,10 +18,9 @@ def maxMessagesSentFromNode(model):
 
 
     for agent in model.schedule.agents:
-        if model.schedule.steps == 0 :
-            maxMessages = 0
-        elif agent.messagesSent / model.schedule.steps > maxMessages:
-            maxMessages = agent.messagesSent / model.schedule.steps
+        
+        if agent.maxMessagesSent > maxMessages:
+            maxMessages = agent.maxMessagesSent
 
     return maxMessages
 
@@ -32,10 +31,8 @@ def maxMessagesReceivedByNode(model):
     maxMessages = 0
 
     for agent in model.schedule.agents:
-        if model.schedule.steps == 0 :
-            maxMessages = 0
-        elif agent.messagesReceived / model.schedule.steps > maxMessages:
-            maxMessages = agent.messagesReceived / model.schedule.steps
+        if agent.maxMessagesReceived > maxMessages:
+            maxMessages = agent.maxMessagesReceived 
 
     return maxMessages
 

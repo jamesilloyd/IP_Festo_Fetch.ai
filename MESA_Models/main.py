@@ -8,8 +8,9 @@ from matplotlib import pyplot as plt
 from Architectures.Inter_Firm_Trust_Based.Trust_Based_Architeture import TrustBasedArchitecture
 import os
 import operationTypes
+import random
 
-runBatch = False
+runBatch = True
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -22,15 +23,15 @@ if __name__ == '__main__':
         #   - they seem useful for tracking the journey of an individiaul agent
         #   - additional use could be for reducing run time for model reporters
         fixed_params = {'width': 40, 'height': 40, 'distributed':True}
-                        # 'operationTypes': operationTypes.operationTypes}
 
-        variable_params = {'communicationMethod':['Trust','PROSA']}
+        variable_params = {'communicationMethod':['Trust','PROSA'],'quantity':range(1,5)}
+        # 'newOrderProbability':range(2,10)}
 
         batch_run = BatchRunner(
             TrustBasedArchitecture,
             variable_params,
             fixed_params,
-            iterations=20,
+            iterations=5,
             max_steps=900,
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
@@ -42,11 +43,10 @@ if __name__ == '__main__':
                 'WIP_Backlog':orders.totalWIPSize, 
                 'Max_Messages_Sent': messages.maxMessagesSentFromNode, 
                 'Max_Messages_Received': messages.maxMessagesReceivedByNode},
-            # agent_reporters={"WaitTime": "unique_id"}
             agent_reporters={
                 'id':'unique_id',
-                'messages_sent':'messagesSent'
-                # TODO: add in other agent reports that you would like to use
+            #     # 'messages_sent':'messagesSent'
+            #     # TODO: add in other agent reports that you would like to use
             }
         )
 
@@ -106,34 +106,31 @@ if __name__ == '__main__':
                                
     
     else:
-        grid = CanvasGrid(agent_portrayal, 40, 40, 600, 600)
-        chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],
-                            data_collector_name='datacollector')
-        chart2 = ChartModule(
-            [{'Label': 'Complete Orders', 'Color': 'Red'}], data_collector_name='datacollector')
-        chart3 = ChartModule([{'Label': 'Average Order Wait Time',
-                               'Color': 'Green'}], data_collector_name='datacollector')
-        chart4 = ChartModule([{'Label': 'Messages Sent',
-                               'Color': 'Green'}], data_collector_name='datacollector')
-        chart5 = ChartModule([{'Label': 'Successful Orders',
-                               'Color': 'Green'}], data_collector_name='datacollector')
-        chart6 = ChartModule([{'Label': 'Late Orders',
-                               'Color': 'Red'}], data_collector_name='datacollector')
-
-        chart7 = ChartModule([{'Label': 'WIP Backlog',
-                               'Color': 'Green'}], data_collector_name='datacollector')
-        chart8 = ChartModule([{'Label': 'Max Messages Sent',
-                               'Color': 'Blue'}], data_collector_name='datacollector')
-
-        chart9 = ChartModule([{'Label': 'Max Messages Received',
-                               'Color': 'Blue'}], data_collector_name='datacollector')
+        grid = CanvasGrid(agent_portrayal, 50, 50, 800, 800)
+        chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],data_collector_name='datacollector')
+        chart2 = ChartModule([{'Label': 'Complete Orders', 'Color': 'Black'}], data_collector_name='datacollector')
+        chart3 = ChartModule([{'Label': 'Average Order Wait Time','Color': 'Red'}], data_collector_name='datacollector')
+        chart4 = ChartModule([{'Label': 'Messages Sent','Color': 'Red'}], data_collector_name='datacollector')
+        chart5 = ChartModule([{'Label': 'Successful Orders','Color': 'Green'}], data_collector_name='datacollector')
+        chart6 = ChartModule([{'Label': 'Late Orders','Color': 'Red'}], data_collector_name='datacollector')
+        chart7 = ChartModule([{'Label': 'WIP Backlog','Color': 'Blue'}], data_collector_name='datacollector')
+        chart8 = ChartModule([{'Label': 'Max Messages Sent','Color': 'Blue'}], data_collector_name='datacollector')
+        chart9 = ChartModule([{'Label': 'Max Messages Received','Color': 'Blue'}], data_collector_name='datacollector')
 
         server = ModularServer(TrustBasedArchitecture,
-                               [grid, chart9, chart8,chart7,chart, chart4, chart2, chart5, chart3, chart6],
+                               [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                                'Festo-Fetch.ai',
-                               {'width': 40, 'height': 50, 'distributed':True,'communicationMethod':'PROSA',
+                               {'width': 50, 'height': 50, 'distributed':True,'communicationMethod':'PROSA',
                                 'model_reporters_dict': {
-                                    "Utilisation": utilisation.machine_utilisation, "Complete Orders": orders.ordersComplete,'Average Order Wait Time': orders.averageOrderWaitTime, "Successful Orders":orders.successfulOrders,'Messages Sent': messages.messagesSent, 'Late Orders':orders.lateOrders,'WIP Backlog':orders.totalWIPSize, 'Max Messages Sent': messages.maxMessagesSentFromNode, 'Max Messages Received': messages.maxMessagesReceivedByNode}})
+                                    "Utilisation": utilisation.machine_utilisation,
+                                    "Complete Orders": orders.ordersComplete,
+                                    'Average Order Wait Time': orders.averageOrderWaitTime, 
+                                    "Successful Orders":orders.successfulOrders,
+                                    'Messages Sent': messages.messagesSent, 
+                                    'Late Orders':orders.lateOrders,
+                                    'WIP Backlog':orders.totalWIPSize, 
+                                    'Max Messages Sent': messages.maxMessagesSentFromNode, 
+                                    'Max Messages Received': messages.maxMessagesReceivedByNode}})
 
         server.port = 8521
         server.launch()

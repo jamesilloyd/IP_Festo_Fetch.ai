@@ -4,7 +4,7 @@ def ordersComplete(model):
 
     total_orders = 0
     for agent in model.schedule.agents:
-        if(agent.agentType == 'order' and agent.completed):
+        if(agent.agentType == 'order' and agent.completed and agent.successful):
             total_orders += 1
 
 

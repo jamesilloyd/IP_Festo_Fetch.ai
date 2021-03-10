@@ -36,6 +36,11 @@ class MachineAgent(Agent):
         self.messagesSent = 0
         self.messagesReceived = 0
         self.timeUntilFree = 0
+
+        self.maxMessagesReceived = 0
+        self.maxMessagesSent = 0
+
+    
         
         # Register the machine with the factory agents and what their capability is
         for agent in self.model.schedule.agents:
@@ -59,10 +64,9 @@ class MachineAgent(Agent):
         if (self.backLogOrders and not self.isOperating):
             self.order = self.backLogOrders[0]
             self.order.inOperation = True
-            # TODO: may want to save results instead
             self.model.grid.move_agent(self.order,self.coordinates)
             self.isOperating = True
-            self.timeLeftOnOperation = self.order.timeToComplete
+            self.timeLeftOnOperation = self.order.timeToComplete * self.order.quantity
 
         # Operate as normal
         if(self.isOperating):

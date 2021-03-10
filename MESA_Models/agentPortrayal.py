@@ -20,13 +20,13 @@ def agent_portrayal(agent):
                 'text': str(agent.unique_id),
                 "r": 0.7}
     elif(agent.agentType == 'machine'):
-        portrayal = {"Shape": "circle",
+        portrayal = {"Shape": "rect",
                 "Color": 'green',
                 "Filled": "true",
                 'text': agent.typeOfOperation,
                 'text_color':'black',
                 "Layer": 0,
-                "r": 1 }
+                "w": 1,'h':1 }
     elif(agent.agentType in ['scheduler','broker','staff','federator']):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
@@ -44,12 +44,12 @@ def agent_portrayal(agent):
                 "Layer": 0,
                 "r": 0.7 }
     elif(agent.agentType == 'factory'):
-        portrayal = {"Shape": "circle",
+        portrayal = {"Shape": "rect",
                 "Color": 'red',
                 "Filled": "true",
                 'text': 'Factory',
                 'text_color':'black',
                 "Layer": 0,
-                "r": 1.5}
+                "w": 2,'h':2}
     
     return portrayal

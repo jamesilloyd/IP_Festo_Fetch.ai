@@ -26,6 +26,11 @@ class TrustFederationAgent(Agent):
         self.messagesSent = 0
         self.messagesReceived = 0
         self.factoryCapabilities = {}
+
+        self.maxMessagesSent = 0
+        self.maxMessagesReceived = 0
+
+
         
     
     @property
@@ -35,8 +40,12 @@ class TrustFederationAgent(Agent):
 
     
     def step(self):
+        messagesReceived = 0
+        messagesSent = 0
         for message in self.receivedMessages:
             self.messagesReceived += 1
+            messagesReceived += 1
+
             if message.type == 'idsRequest':
                 print('Federator {} - received ids request from factory {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
                 if message.capability in self.factoryCapabilities:
@@ -51,6 +60,7 @@ class TrustFederationAgent(Agent):
                     if agent.unique_id == message.fromId:
                         agent.receivedMessages.append(newMessage)
                         self.messagesSent += 1
+                        messagesSent += 1
                 else:
                     # TODO: handle capability not existing
                     pass
@@ -64,36 +74,30 @@ class TrustFederationAgent(Agent):
                         self.factoryCapabilities.update({capability:[message.fromId]})
 
 
-        
-
+    
         self.receivedMessages.clear()
 
+        if messagesSent > self.maxMessagesSent:
+            self.maxMessagesSent = messagesSent
+        if messagesReceived > self.maxMessagesReceived:
+            self.maxMessagesReceived = messagesReceived
 
 
-class PROSAFederationAgent(Agent):
+
+class PROSAFederationAgent(TrustFederationAgent):
     
-    agentType = 'federator'
 
     def __init__(self, unique_id, model, coordinates):
-        super().__init__(unique_id, model)
-        
-        self.coordinates = coordinates
-
-        self.receivedMessages = []
-        self.messagesSent = 0
-        self.messagesReceived = 0
-        self.factoryCapabilities = {}
+        super().__init__(unique_id, model,coordinates)
         
     
-    @property
-    def backlogCoordinates(self):
-        changedX = self.coordinates[0] - 1
-        return (changedX,self.coordinates[1])
-
     
     def step(self):
+        messagesReceived = 0
+        messagesSent = 0
         for message in self.receivedMessages:
             self.messagesReceived += 1
+            messagesReceived += 1
             if message.type == 'idsRequest':
                 print('Federator {} - received ids request from order {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
                 if message.capability in self.factoryCapabilities:
@@ -108,6 +112,7 @@ class PROSAFederationAgent(Agent):
                     if agent.unique_id == message.fromId:
                         agent.receivedMessages.append(newMessage)
                         self.messagesSent += 1
+                        messagesSent  += 1
                 else:
                     # TODO: handle capability not existing
                     pass
@@ -124,6 +129,11 @@ class PROSAFederationAgent(Agent):
         
 
         self.receivedMessages.clear()
+
+        if messagesSent > self.maxMessagesSent:
+            self.maxMessagesSent = messagesSent
+        if messagesReceived > self.maxMessagesReceived:
+            self.maxMessagesReceived = messagesReceived
 
 
 
