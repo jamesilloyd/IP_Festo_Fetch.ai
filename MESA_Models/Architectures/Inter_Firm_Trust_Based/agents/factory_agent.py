@@ -70,10 +70,11 @@ class TrustFactoryAgent(Agent):
         self.checkOrderBacklog()
         self.checkReceivedMessages(messagesReceived,messagesSent)
 
-        if messagesSent > self.maxMessagesSent:
-            self.maxMessagesSent = messagesSent
-        if messagesReceived > self.maxMessagesReceived:
-            self.maxMessagesReceived = messagesReceived
+        if self.model.schedule.steps > 5:
+            if messagesSent > self.maxMessagesSent:
+                self.maxMessagesSent = messagesSent
+            if messagesReceived > self.maxMessagesReceived:
+                self.maxMessagesReceived = messagesReceived
         
             
 
@@ -86,7 +87,8 @@ class TrustFactoryAgent(Agent):
 
             # Choose which resource to allocate it to
             if capableMachineIds:
-                chosenMachineId = random.choice(capableMachineIds)
+                chosenMachineDict = random.choice(capableMachineIds)
+                chosenMachineId = chosenMachineDict['machineId']
                 print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
                 for machineAgent in self.model.schedule.agents:
                     if machineAgent.unique_id == chosenMachineId:
@@ -142,14 +144,15 @@ class TrustFactoryAgent(Agent):
             if message.type == "resourceRequest":
                 print('Factory {} - received resource request for order {}'.format(self.unique_id,message.fromId))
                 # Check whether we can carry out the operation
-                capableMachineIds = self.capabilityCheck(message.orderAgent)
+                capableMachines = self.capabilityCheck(message.orderAgent)
                 messages = []
-                if capableMachineIds:
+                if capableMachines:
                     # Add all avaialable machines for negotiation
-                    for machineId in capableMachineIds:
-                        price = random.randrange(100)
-                        print('Factory {} - can carry out order {} for €{} on machine {}'.format(self.unique_id,message.fromId,price,machineId))
-                        returnMessage = Message(self.unique_id,'resourceRequestResponse',canCarryOutRequest=True,price=price,machineId=machineId)
+                    for machineDict in capableMachines:
+                        machineId = machineDict['machineId']
+                        machinePrice = machineDict['price']
+                        print('Factory {} - can carry out order {} for €{} on machine {}'.format(self.unique_id,message.fromId,machinePrice,machineId))
+                        returnMessage = Message(self.unique_id,'resourceRequestResponse',canCarryOutRequest=True,price=machinePrice,machineId=machineId)
                         messages.append(returnMessage)
                 else:
                     print('Factory {} - cannot do order {}'.format(self.unique_id,message.fromId))
@@ -194,7 +197,7 @@ class TrustFactoryAgent(Agent):
                 if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
 
                     if agent.dueDate - machineAgent.timeUntilFree >= agent.timeToComplete * agent.quantity:
-                        capableMachines.append(machineAgent.unique_id)
+                        capableMachines.append({'machineId':machineAgent.unique_id,'price':machineAgent.hourlyRate * agent.quantity * agent.timeToComplete})
                         if(not inHouse):
                             machineAgent.timeUntilFree += agent.timeToComplete * agent.quantity
 

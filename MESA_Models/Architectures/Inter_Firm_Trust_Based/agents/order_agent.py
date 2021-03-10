@@ -84,14 +84,11 @@ class TrustOrderAgent(Agent):
             
             elif message.type == "idsResponse":
                 # Check if the requestedIds are empty or not
-                print(message.requestedIds)
-                print(self.factoryId)
                 receivedIds = []
                 for factoryId in message.requestedIds:
                     if factoryId != self.factoryId:
                         receivedIds.append(factoryId)
 
-                print(receivedIds)
                 if(receivedIds):
                     print('Order {} - received request ids'.format(self.unique_id))
                     self.status = 'receivedIds'
@@ -124,7 +121,7 @@ class TrustOrderAgent(Agent):
                     self.negotiationTimer = 2
                 
                 if message.canCarryOutRequest:
-                    print('Order {} - received offer from factory {}'.format(self.unique_id,message.fromId))
+                    print('Order {} - received offer from factory {} on machine {}'.format(self.unique_id,message.fromId,message.machineId))
                     self.receivedOffers.append({'factory':message.fromId,'price':message.price,'machine':message.machineId})
                 
         self.receivedMessages.clear()
@@ -145,14 +142,14 @@ class TrustOrderAgent(Agent):
                             self.model.grid.move_agent(self,agent.unsuccessfulOrderCoordinates)
 
                 else:
-                    lowestBid = 101
+                    lowestBid = None
                     factoryId = 0
 
 
                     listOfMachineIDs = []
                     for offer in self.receivedOffers:
                         listOfMachineIDs.append(offer['machine'])
-                        if offer['price'] < lowestBid:
+                        if lowestBid is None or offer['price'] < lowestBid:
                             lowestBid = offer['price']
                             factoryId = offer['factory']
                             machineId = offer['machine']
@@ -187,7 +184,7 @@ class TrustOrderAgent(Agent):
 
         else:
             # Waiting for operation
-            print('ORDER {} WAITING {}'.format(self.unique_id,self.waitTime))
+            # print('ORDER {} WAITING {}'.format(self.unique_id,self.waitTime))
             self.waitTime += 1
                 
 

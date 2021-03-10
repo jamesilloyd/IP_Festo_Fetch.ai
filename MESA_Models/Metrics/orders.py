@@ -17,6 +17,8 @@ def totalWIPSize(model):
     for agent in model.schedule.agents:
         if(agent.agentType == 'machine'):
             totalWIPSize += len(agent.backLogOrders)
+            if(agent.isOperating):
+                totalWIPSize += 1
     
     return totalWIPSize
 

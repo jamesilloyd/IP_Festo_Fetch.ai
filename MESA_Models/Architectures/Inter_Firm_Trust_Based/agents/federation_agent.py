@@ -76,13 +76,14 @@ class TrustFederationAgent(Agent):
 
         self.receivedMessages.clear()
 
-        if messagesSent > self.maxMessagesSent:
-            self.maxMessagesSent = messagesSent
-        if messagesReceived > self.maxMessagesReceived:
-            self.maxMessagesReceived = messagesReceived
+        if self.model.schedule.steps > 5:
+            if messagesSent > self.maxMessagesSent:
+                self.maxMessagesSent = messagesSent
+            if messagesReceived > self.maxMessagesReceived:
+                self.maxMessagesReceived = messagesReceived
 
 
-    
+        
 
 
 

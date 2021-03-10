@@ -22,17 +22,17 @@ if __name__ == '__main__':
         # TODO: need to look a bit more into how the agent_reporters work and what they could be used for 
         #   - they seem useful for tracking the journey of an individiaul agent
         #   - additional use could be for reducing run time for model reporters
-        fixed_params = {'width': 40, 'height': 40, 'distributed':True}
+        fixed_params = {'width': 40, 'height': 40,'distributed':True}
 
-        variable_params = {'quantity':range(1,5)}
+        variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'quantity':range(1,5)}
         # 'newOrderProbability':range(2,10)}
 
         batch_run = BatchRunner(
             TrustBasedArchitecture,
             variable_params,
             fixed_params,
-            iterations=5,
-            max_steps=900,
+            iterations=7 ,
+            max_steps=600,
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
                 "Complete_Orders": orders.ordersComplete,
@@ -40,6 +40,7 @@ if __name__ == '__main__':
                 "Successful_Orders":orders.successfulOrders,
                 'Messages_Sent': messages.messagesSent, 
                 'Late_Orders':orders.lateOrders,
+                # TODO this is a fake metric
                 'WIP_Backlog':orders.totalWIPSize, 
                 'Max_Messages_Sent': messages.maxMessagesSentFromNode, 
                 'Max_Messages_Received': messages.maxMessagesReceivedByNode},
@@ -120,7 +121,7 @@ if __name__ == '__main__':
         server = ModularServer(TrustBasedArchitecture,
                                [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                                'Festo-Fetch.ai',
-                               {'width': 50, 'height': 50, 'distributed':True,
+                               {'width': 50, 'height': 50, 'distributed':True,'quantity':1,'schedulingType':'MDD',
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,

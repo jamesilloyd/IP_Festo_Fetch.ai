@@ -39,7 +39,7 @@ factoriesAndCapabilities = [
 
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO'):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -63,7 +63,7 @@ class TrustBasedArchitecture(Model):
                 incrementedYCoordinate = 2
                 for capability in factory[1]:
                     coordinates = (factory[0][0] + 3,factory[0][1] - incrementedYCoordinate)
-                    newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber,1)
+                    newMachine = MachineAgent(self.schedule.get_agent_count() + 1,self,capability,coordinates,factoryNumber,schedulingType)
                     self.schedule.add(newMachine)
                     self.grid.place_agent(newMachine,newMachine.coordinates)
                     incrementedYCoordinate += 2
