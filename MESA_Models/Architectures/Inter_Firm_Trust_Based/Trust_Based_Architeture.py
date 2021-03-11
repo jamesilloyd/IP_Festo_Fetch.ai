@@ -37,6 +37,7 @@ factoriesAndCapabilities = [
     [(30,35),['IM','3D_SLS','CNC']],
     ]
 
+
 class TrustBasedArchitecture(Model):
 
     def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO',splitSize = 1):
@@ -49,6 +50,7 @@ class TrustBasedArchitecture(Model):
         
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre,federationCentre.coordinates)
+
 
         while quantity != 0:
             quantity -= 1

@@ -11,11 +11,10 @@ import operationTypes
 import random
 import sys
 
-runBatch = True
+runBatch = False
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
-
 
 if __name__ == '__main__':
 
@@ -28,16 +27,18 @@ if __name__ == '__main__':
         # TODO: need to look a bit more into how the agent_reporters work and what they could be used for 
         #   - they seem useful for tracking the journey of an individiaul agent
         #   - additional use could be for reducing run time for model reporters
-        fixed_params = {'width': 40, 'height': 40,'distributed':True,'quantity':2}
+        fixed_params = {'width': 40, 'height': 40,'splitSize':2,'distributed':True,'schedulingType':'FIFO'}
 
-        variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'splitSize':range(1,5)}
+        # variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'splitSize':range(1,5)}
+        # variable_params = {'distributed':[True,False]}
+        variable_params = {'quantity':range(1,20,4)}
         # 'newOrderProbability':range(2,10)}
 
         batch_run = BatchRunner(
             TrustBasedArchitecture,
             variable_params,
             fixed_params,
-            iterations=7 ,
+            iterations=1,
             max_steps=600,
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
                                
     
     else:
-        grid = CanvasGrid(agent_portrayal, 50, 50, 800, 800)
+        grid = CanvasGrid(agent_portrayal, 40, 40, 800, 800)
         chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],data_collector_name='datacollector')
         chart2 = ChartModule([{'Label': 'Complete Orders', 'Color': 'Black'}], data_collector_name='datacollector')
         chart3 = ChartModule([{'Label': 'Average Order Wait Time','Color': 'Red'}], data_collector_name='datacollector')
@@ -125,9 +126,9 @@ if __name__ == '__main__':
         chart9 = ChartModule([{'Label': 'Max Messages Received','Color': 'Blue'}], data_collector_name='datacollector')
 
         server = ModularServer(TrustBasedArchitecture,
-                               [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
-                               'Festo-Fetch.ai',
-                               {'width': 50, 'height': 50, 'distributed':True,'quantity':2,'schedulingType':'FIFO','splitSize':4,
+                            [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
+                            'Festo-Fetch.ai',
+                            {'width': 40, 'height': 40, 'distributed':True,'quantity':1,'schedulingType':'MDD','splitSize':2,'demoNumber':1,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,
@@ -141,6 +142,3 @@ if __name__ == '__main__':
 
         server.port = 8521
         server.launch()
-
-    # sys.stdout = orig_stdout
-    # f.close()

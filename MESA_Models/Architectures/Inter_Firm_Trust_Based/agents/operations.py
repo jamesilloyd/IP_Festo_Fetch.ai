@@ -1,6 +1,6 @@
 
 
-# TODO: this file is super important
+
 operationDictionary = { 
     'CNC':{'unitOperationTimes':(1,5),'resourceHourlyRate':(150,250),'usualQuantity':(10,20)},
     '3D_SLS':{'unitOperationTimes':(25,35),'resourceHourlyRate':(32,33),'usualQuantity':(1,2)},
