@@ -39,7 +39,7 @@ factoriesAndCapabilities = [
 
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO'):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO',splitSize = 1):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -55,7 +55,7 @@ class TrustBasedArchitecture(Model):
             for factory in factoriesAndCapabilities:
                 factoryNumber = self.schedule.get_agent_count() + 1
                 
-                newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed,newOrderProbability)
+                newFactoryAgent = TrustFactoryAgent(factoryNumber,self,factory[0],distributed,newOrderProbability,splitSize = splitSize)
                 
                 self.schedule.add(newFactoryAgent)
                 self.grid.place_agent(newFactoryAgent,newFactoryAgent.coordinates)
@@ -83,8 +83,6 @@ class TrustBasedArchitecture(Model):
         self.datacollector.collect(self)
         self.schedule.step()
         
-        # self.newOrders()
-
     
             
             

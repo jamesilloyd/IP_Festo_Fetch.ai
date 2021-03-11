@@ -36,6 +36,7 @@ class MachineAgent(Agent):
         self.messagesSent = 0
         self.messagesReceived = 0
         self.timeUntilFree = 0
+        self.void = False
 
         self.maxMessagesReceived = 0
         self.maxMessagesSent = 0
@@ -67,6 +68,7 @@ class MachineAgent(Agent):
             self.order = self.backLogOrders[0]
             self.backLogOrders.pop(0)
             self.order.inOperation = True
+            print('Machine {} - moving order {}'.format(self.unique_id,self.order.unique_id))
             self.model.grid.move_agent(self.order,self.coordinates)
             self.isOperating = True
             self.timeLeftOnOperation = self.order.timeToComplete * self.order.quantity
@@ -78,20 +80,21 @@ class MachineAgent(Agent):
                 self.timeUntilFree -= message.orderAgent.quantity * message.orderAgent.timeToComplete
         
         self.receivedMessages.clear()
-        
-        # print('Machine {} time till free = {}'.format(self.unique_id,self.timeUntilFree))
+
  
 
         # Operate as normal
         if(self.isOperating):
             self.timeLeftOnOperation -= 1
             self.timeWorking += 1
-            if(self.timeLeftOnOperation == 0):
+            if(self.timeLeftOnOperation <= 0):
 
                 self.isOperating = False
                 # Add the operation to the completed pile
                 self.order.completed = True
                 self.order.completedDate = self.model.schedule.steps
+                self.order.status = 'completed'
+                
                 for agent in self.model.schedule.agents:
                     if agent.unique_id == self.factoryId:
                         self.model.grid.move_agent(self.order,agent.completedOrderCoordinates)
@@ -140,6 +143,8 @@ class MachineAgent(Agent):
                             notFinished = False
 
                     self.backLogOrders.extend(removedOrderList)
+                
+                
 
                 elif(self.schedulingType == 'MDD'):
                     print('Machine {} - finished order {} - Carrying out MDD schedule'.format(self.unique_id,self.order.unique_id))
@@ -166,13 +171,30 @@ class MachineAgent(Agent):
 
                     self.backLogOrders.extend(MDDList)
                 
+                self.order = None
+            
         else:
             self.timeFree += 1
 
+        
+        # Just recalculating the timeUntilFree
+        backLogSize = self.model.schedule.steps
+        backLogOrder = []
+        if self.order is not None:
+            backLogSize += self.timeLeftOnOperation
+
+        for order in self.backLogOrders:
+            backLogSize += order.quantity * order.timeToComplete
+            backLogOrder.append(order.unique_id)
+
+
+        if backLogSize > self.timeUntilFree:
+            self.timeUntilFree = backLogSize
+
+        
+        # Just update this in case we don't have any orders
         if self.timeUntilFree < self.model.schedule.steps:
             self.timeUntilFree = self.model.schedule.steps
 
-
-        #Check for messages from the scheduler and respond with status and backlog (OR scheduler does this through live lookup)
 
 

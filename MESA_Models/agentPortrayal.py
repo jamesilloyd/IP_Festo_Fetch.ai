@@ -11,6 +11,11 @@ def agent_portrayal(agent):
             color = 'red'
         else:
             color = 'blue'
+        
+        if agent.size != 1:
+            r = 0.5
+        else:
+            r = 1
 
         portrayal = {"Shape": "circle",
                 "Color": color,
@@ -18,7 +23,7 @@ def agent_portrayal(agent):
                 'text_color':'white',
                 "Layer": 0.5,
                 'text': str(agent.unique_id),
-                "r": 0.7}
+                "r": r}
     elif(agent.agentType == 'machine'):
         portrayal = {"Shape": "rect",
                 "Color": 'green',

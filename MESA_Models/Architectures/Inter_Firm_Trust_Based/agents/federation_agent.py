@@ -29,6 +29,7 @@ class TrustFederationAgent(Agent):
 
         self.maxMessagesSent = 0
         self.maxMessagesReceived = 0
+        self.void = False
 
 
         

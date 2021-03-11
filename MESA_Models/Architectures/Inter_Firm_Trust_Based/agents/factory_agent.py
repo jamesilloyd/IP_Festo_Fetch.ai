@@ -12,7 +12,7 @@ class TrustFactoryAgent(Agent):
     
     agentType = 'factory'
 
-    def __init__(self, unique_id, model, coordinates,distributed, newOrderProbability):
+    def __init__(self, unique_id, model, coordinates,distributed, newOrderProbability,splitSize = 1):
         super().__init__(unique_id, model)
         
         self.coordinates = coordinates
@@ -21,11 +21,14 @@ class TrustFactoryAgent(Agent):
         self.receivedMessages = []
         self.messagesSent = 0
         self.messagesReceived = 0
+
+        self.splitSize = splitSize
         
         self.scheduleStaffIds = []
         self.productAgentIds = []
 
         self.newOrdersBacklog = []
+        self.void = False
 
         self.newOrderProbability = newOrderProbability
     
@@ -64,7 +67,7 @@ class TrustFactoryAgent(Agent):
     def step(self):
         messagesSent = 0
         messagesReceived = 0
-        if self.model.schedule.steps > 1:
+        if self.model.schedule.steps > 1 :
             self.newOrders()
 
         self.checkOrderBacklog()
@@ -93,6 +96,7 @@ class TrustFactoryAgent(Agent):
                 for machineAgent in self.model.schedule.agents:
                     if machineAgent.unique_id == chosenMachineId:
                         machineAgent.backLogOrders.append(agent)
+                        agent.status = 'waitingInHouse'
                         machineAgent.timeUntilFree += agent.quantity * agent.timeToComplete
                         self.model.grid.move_agent(agent,machineAgent.backlogCoordinates)
 
@@ -110,6 +114,7 @@ class TrustFactoryAgent(Agent):
                 self.model.grid.move_agent(agent,self.unsuccessfulOrderCoordinates)
                 agent.completed = True
                 agent.successful = False
+                agent.status = 'unsuccessful'
         
         self.newOrdersBacklog.clear()
 
@@ -126,7 +131,7 @@ class TrustFactoryAgent(Agent):
             for key in self.capabilities.keys():
                 capabilities.append(key)
                 
-            orderAgent = TrustOrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities,self.unique_id)
+            orderAgent = TrustOrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities,self.unique_id,splitSize=self.splitSize)
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
@@ -195,6 +200,8 @@ class TrustFactoryAgent(Agent):
             # Ask the resources if they can carry it out
             for machineAgent in self.model.schedule.agents:
                 if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
+
+                    # print('{} - {} - {}'.format(machineAgent.timeUntilFree,agent.dueDate,agent.timeToComplete * agent.quantity))
 
                     if agent.dueDate - machineAgent.timeUntilFree >= agent.timeToComplete * agent.quantity:
                         capableMachines.append({'machineId':machineAgent.unique_id,'price':machineAgent.hourlyRate * agent.quantity * agent.timeToComplete})

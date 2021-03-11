@@ -9,8 +9,9 @@ from Architectures.Inter_Firm_Trust_Based.Trust_Based_Architeture import TrustBa
 import os
 import operationTypes
 import random
+import sys
 
-runBatch = False
+runBatch = True
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -18,13 +19,18 @@ saveResults = True
 
 if __name__ == '__main__':
 
+    # orig_stdout = sys.stdout
+    # f=open('out5.txt','w')
+    # sys.stdout = f
+
+
     if(runBatch):
         # TODO: need to look a bit more into how the agent_reporters work and what they could be used for 
         #   - they seem useful for tracking the journey of an individiaul agent
         #   - additional use could be for reducing run time for model reporters
-        fixed_params = {'width': 40, 'height': 40,'distributed':True}
+        fixed_params = {'width': 40, 'height': 40,'distributed':True,'quantity':2}
 
-        variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'quantity':range(1,5)}
+        variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'splitSize':range(1,5)}
         # 'newOrderProbability':range(2,10)}
 
         batch_run = BatchRunner(
@@ -79,9 +85,9 @@ if __name__ == '__main__':
                                     "Utilisation": utilisation.machine_utilisation, 
                                     "Complete Orders": orders.ordersComplete,
                                     'Average Order Wait Time': orders.averageOrderWaitTime, 
-                                    "Successful Orders":orders.successfulOrders,
+                                    "% Successful Orders":orders.successfulOrders,
                                     'Messages Sent': messages.messagesSent, 
-                                    'Late Orders':orders.lateOrders,
+                                    "% Late Orders":orders.lateOrders,
                                     'WIP Backlog':orders.totalWIPSize, 
                                     'Max Messages Sent': messages.maxMessagesSentFromNode, 
                                     'Max Messages Received': messages.maxMessagesReceivedByNode},
@@ -121,7 +127,7 @@ if __name__ == '__main__':
         server = ModularServer(TrustBasedArchitecture,
                                [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                                'Festo-Fetch.ai',
-                               {'width': 50, 'height': 50, 'distributed':True,'quantity':1,'schedulingType':'MDD',
+                               {'width': 50, 'height': 50, 'distributed':True,'quantity':2,'schedulingType':'FIFO','splitSize':4,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,
@@ -135,3 +141,6 @@ if __name__ == '__main__':
 
         server.port = 8521
         server.launch()
+
+    # sys.stdout = orig_stdout
+    # f.close()
