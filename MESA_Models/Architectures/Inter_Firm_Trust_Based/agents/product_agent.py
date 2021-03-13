@@ -13,6 +13,8 @@ from mesa import Agent, Model
 
 class ProductAgent(Agent):
 
+    '''Some description here'''
+
     agentType = 'product'
 
     def __init__(self, unique_id, model, productType, operations: list, needsQC: bool, bom:list,coordinates):

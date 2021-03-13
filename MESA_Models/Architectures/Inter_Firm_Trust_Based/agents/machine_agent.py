@@ -105,6 +105,14 @@ class MachineAgent(Agent):
                     # SPT => minimise the flow time
                     print('Machine {} - finished order {} - Carrying out SPT schedule'.format(self.unique_id,self.order.unique_id))
                     self.backLogOrders.sort(key=lambda x: x.timeToComplete * x.quantity, reverse=False)
+
+
+                elif(self.schedulingType == 'LIFO'):
+                    # # EDD = minimise the max lateness of a job
+                    print('Machine {} - finished order {} - Carrying out LIFO schedule'.format(self.unique_id,self.order.unique_id))
+                    print('Old backlog {}'.format(self.backLogOrders))
+                    self.backLogOrders.sort(key=lambda x: x.dueDate, reverse=True)
+                    print('Old backlog {}'.format(self.backLogOrders))
                 
                 elif(self.schedulingType == 'EDD'):
                     # # EDD = minimise the max lateness of a job

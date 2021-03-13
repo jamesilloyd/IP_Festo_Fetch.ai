@@ -22,6 +22,8 @@ from .operations import operationDictionary
 
 class TrustOrderAgent(Agent):
 
+    '''Some description here'''
+
     agentType = 'order'
 
     """An agent with fixed initial wealth."""
