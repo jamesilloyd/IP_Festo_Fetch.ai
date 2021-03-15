@@ -40,7 +40,7 @@ factoriesAndCapabilities = [
 
 class TrustBasedArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO',splitSize = 1):
+    def __init__(self, width, height, distributed, model_reporters_dict = None, agent_reporters_dict = None,newOrderProbability = 10,quantity = 1,schedulingType = 'FIFO',splitSize = 1,steps = 1):
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True

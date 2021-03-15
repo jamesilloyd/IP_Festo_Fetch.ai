@@ -11,7 +11,7 @@ import operationTypes
 import random
 import sys
 
-runBatch = True
+runBatch = False
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -24,23 +24,16 @@ if __name__ == '__main__':
 
 
     if(runBatch):
-        # TODO: need to look a bit more into how the agent_reporters work and what they could be used for 
-        #   - they seem useful for tracking the journey of an individiaul agent
-        #   - additional use could be for reducing run time for model reporters
-        fixed_params = {'width': 40, 'height': 40,'distributed':False, 'schedulingType':'FIFO','splitSize':1}
+        fixed_params = {'width': 40, 'height': 40,'steps':500,'schedulingType':'FIFO','splitSize':1}
 
-        # variable_params = {'schedulingType':['FIFO','Moores','EDD','SPT','MDD'],'splitSize':range(1,5)}
-        # variable_params = {'distributed':[True,False]}
-        variable_params = {'quantity':[1,2,3,4,5]}
-        # 'newOrderProbability':range(2,10)}
-        # variable_params = {'distributed':[True,False]}
+        variable_params = {'distributed':[True,False],'quantity':[1,2,3,4,5]}
 
         batch_run = BatchRunner(
             TrustBasedArchitecture,
             variable_params,
             fixed_params,
-            iterations=5,
-            max_steps=900,
+            iterations=50,
+            max_steps=500,
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
                 "Complete_Orders": orders.ordersComplete,
@@ -130,7 +123,7 @@ if __name__ == '__main__':
         server = ModularServer(TrustBasedArchitecture,
                             [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                             'Festo-Fetch.ai',
-                            {'width': 40, 'height': 40, 'distributed':True,'quantity':20,'schedulingType':'FIFO','splitSize':2,
+                            {'width': 40, 'height': 40, 'distributed':True,'quantity':1,'schedulingType':'MDD','splitSize':2,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,

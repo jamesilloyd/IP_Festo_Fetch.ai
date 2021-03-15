@@ -3,14 +3,21 @@ from matplotlib import pyplot as plt
 
 
 # TODO: have way of changing this path
-agent_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Inter-Firm/test_19/agent_data.pkl')
-model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Inter-Firm/test_19/model_data.pkl')
 
-print(model_data_pickle)
 
-writer = pd.ExcelWriter('PythonExport3.xlsx')
-model_data_pickle.to_excel(writer,'Sheet5')
+# plt.scatter(model_data_pickle.schedulingType,model_data_pickle.Utilisation)
+# plt.show()
+
+# plt.scatter(model_data_pickle.schedulingType,model_data_pickle.Average_Order_Wait_Time)
+# plt.show()
+writer = pd.ExcelWriter('Results12356.xlsx')
+
+i = 25
+model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Inter-Firm/test_{}/model_data.pkl'.format(i))
+model_data_pickle.to_excel(writer,sheet_name = '{}_model'.format(i))
+    
 writer.save()
+writer.close()
 
 # DF TO CSV
 # yourdf.to_csv('PythonExport.csv', sep=',')
