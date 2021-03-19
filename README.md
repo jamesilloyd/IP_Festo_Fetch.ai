@@ -1,5 +1,11 @@
 # IP_Festo_Fetch.ai
 
+# Prerequisites
+```bash
+pip install mesa
+```
+
+# File structure
 The simulation can be run from the _main.py_ file. It can be run as a batch or in visualisation mode by setting the booleans at the top of the file. 
 
 The _Architectures_ folder contains the agent and architecture classes. The most developed architecture is labelled _Inter-Firm / Trust_. Other architectures developed are included in the _old_archs_ sub-directory.
