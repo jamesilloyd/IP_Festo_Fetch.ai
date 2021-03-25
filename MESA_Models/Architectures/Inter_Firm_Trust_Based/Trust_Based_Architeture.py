@@ -6,7 +6,6 @@ from mesa.datacollection import DataCollector
 import random
 # from .agents.order_agent import OrderAgent
 from .agents.machine_agent import MachineAgent
-from .agents.product_agent import ProductAgent
 from .agents.factory_agent import TrustFactoryAgent
 from .agents.federation_agent import TrustFederationAgent
 

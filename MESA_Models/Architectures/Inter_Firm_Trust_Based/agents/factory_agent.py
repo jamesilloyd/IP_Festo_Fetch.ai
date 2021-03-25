@@ -16,7 +16,7 @@ class TrustFactoryAgent(Agent):
         super().__init__(unique_id, model)
         
         self.coordinates = coordinates
-
+        
         self.capabilities = {}
         self.receivedMessages = []
         self.messagesSent = 0

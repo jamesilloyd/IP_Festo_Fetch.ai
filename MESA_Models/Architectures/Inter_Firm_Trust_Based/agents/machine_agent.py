@@ -61,7 +61,6 @@ class MachineAgent(Agent):
 
 
     def step(self):
-            
         
         # If it has an order in the backlog, start working on it 
         if (self.backLogOrders and not self.isOperating):

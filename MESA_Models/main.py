@@ -37,12 +37,10 @@ if __name__ == '__main__':
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
                 "Complete_Orders": orders.ordersComplete,
-                # TODO this is a fake metric
                 'Average_Order_Wait_Time': orders.averageOrderWaitTime, 
                 "Successful_Orders":orders.successfulOrders,
                 'Messages_Sent': messages.messagesSent, 
                 'Late_Orders':orders.lateOrders,
-                # TODO this is a fake metric
                 'WIP_Backlog':orders.totalWIPSize, 
                 'Max_Messages_Sent': messages.maxMessagesSentFromNode, 
                 'Max_Messages_Received': messages.maxMessagesReceivedByNode},
@@ -120,6 +118,7 @@ if __name__ == '__main__':
         chart8 = ChartModule([{'Label': 'Max Messages Sent','Color': 'Blue'}], data_collector_name='datacollector')
         chart9 = ChartModule([{'Label': 'Max Messages Received','Color': 'Blue'}], data_collector_name='datacollector')
 
+        
         server = ModularServer(TrustBasedArchitecture,
                             [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                             'Festo-Fetch.ai',
