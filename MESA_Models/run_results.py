@@ -10,14 +10,17 @@ from matplotlib import pyplot as plt
 
 # plt.scatter(model_data_pickle.schedulingType,model_data_pickle.Average_Order_Wait_Time)
 # plt.show()
-writer = pd.ExcelWriter('Results12356.xlsx')
+# writer = pd.ExcelWriter('Results12356.xlsx')
 
-i = 25
-model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Inter-Firm/test_{}/model_data.pkl'.format(i))
-model_data_pickle.to_excel(writer,sheet_name = '{}_model'.format(i))
+model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_7/model_data.pkl')
+
+
+print(model_data_pickle)
+
+# model_data_pickle.to_excel(writer,sheet_name = '{}_model'.format(i))
     
-writer.save()
-writer.close()
+# writer.save()
+# writer.close()
 
 # DF TO CSV
 # yourdf.to_csv('PythonExport.csv', sep=',')
@@ -34,84 +37,29 @@ writer.close()
 # plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation)
 # plt.show()
 
-# # plt.subplot(3,2,1)
-# # plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation.where(model_data_pickle['quantity']=='FIFO').where(model_data_pickle['schedulingType']==1),color='blue')
-# plt.title('Utilisation')
-# plt.xlabel('FIFO')
-# plt.subplot(3,2,2)
-# plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation.where(model_data_pickle['quantity']=='Moores').where(model_data_pickle['schedulingType']==1),color='red')
-# plt.xlabel('Moores')
-# plt.subplot(3,2,3)
-# plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation.where(model_data_pickle['quantity']=='SPT').where(model_data_pickle['schedulingType']==1),color='green')
-# plt.xlabel('SPT')
-# plt.subplot(3,2,4)
-# plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation.where(model_data_pickle['quantity']=='MDD').where(model_data_pickle['schedulingType']==1),color='black')
-# plt.xlabel('MDD')
-# plt.subplot(3,2,5)
-# plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation.where(model_data_pickle['quantity']=='EDD').where(model_data_pickle['schedulingType']==1),color='orange')
-# plt.xlabel('EDD')
-# plt.tight_layout()
-# plt.show()
+# "Utilisation": utilisation.machine_utilisation, 
+#                 "Complete_Orders": orders.ordersComplete,
+#                 'Average_Order_Wait_Time': orders.averageOrderWaitTime, 
+#                 "Successful_Orders":orders.successfulOrders,
+#                 'Messages_Sent': messages.messagesSent, 
+#                 'Late_Orders':orders.lateOrders,
+#                 'WIP_Backlog':orders.totalWIPSize, 
+#                 'Max_Messages_Sent': messages.maxMessagesSentFromNode, 
+#                 'Max_Messages_Received': messages.maxMessagesReceivedByNode},
 
-
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Utilisation.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Utilisation.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Utilisation')
-# plt.legend()
-# plt.show()
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Complete_Orders.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Complete_Orders.where(model_data_pickle['distributed']==0),label='CM')
-
-# plt.title('Total Successful Orders')
-# plt.legend()
-# plt.show()
-
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Successful_Orders.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Successful_Orders.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('% Successful Orders')
-# plt.legend()
-# plt.show()
-
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Average_Order_Wait_Time.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Average_Order_Wait_Time.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Average_Order_Wait_Time')
-# plt.legend()
-# plt.show()
-
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Messages_Sent.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Messages_Sent.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Messages_Sent')
-# plt.legend()
-# plt.show()
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Late_Orders.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Late_Orders.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Late_Orders')
-# plt.legend()
-# plt.show()
-
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Max_Messages_Sent.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Max_Messages_Sent.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Max_Messages_Sent')
-# plt.legend()
-# plt.show()
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Max_Messages_Received.where(model_data_pickle['distributed']==1),label='DM')
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.Max_Messages_Received.where(model_data_pickle['distributed']==0),label='CM')
-# plt.title('Max_Messages_Received')
-# plt.legend()
-# plt.show()
-# plt.scatter(agent_data_pickle.id,agent_data_pickle.id)
-# plt.show()
-
-# TODO: these tests are agent based, not model based as you
-# plt.scatter(model_data_pickle.distributed,model_data_pickle.WIP_Backlog)
-# plt.title('WIP_Backlog')
-# plt.show()
-
-
-# # print(agent_data_pickle.head())
-
-# # end_messages = agent_data_pickle.xs(5, level ="AgentID")
-# # end_messages.messages_sent.plot()
-
-
-# plt.show()
+# plt.subplot(3,2,1)
+plt.scatter(model_data_pickle.method,model_data_pickle.Utilisation)
+plt.title('Utilisation')
+plt.show()
+plt.scatter(model_data_pickle.method,model_data_pickle.Average_Order_Wait_Time)
+plt.title('Wait Time')
+plt.show()
+plt.scatter(model_data_pickle.method,model_data_pickle.Successful_Orders)
+plt.title('Successful Orders')
+plt.show()
+plt.scatter(model_data_pickle.method,model_data_pickle.Late_Orders)
+plt.title('Late Orders')
+plt.show()
+plt.scatter(model_data_pickle.method,model_data_pickle.WIP_Backlog)
+plt.title('Backlog')
+plt.show()

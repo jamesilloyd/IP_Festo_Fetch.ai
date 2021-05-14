@@ -5,13 +5,13 @@ from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
 from Metrics import utilisation, orders, messages
 from matplotlib import pyplot as plt
-from Architectures.Inter_Firm_Trust_Based.Trust_Based_Architeture import TrustBasedArchitecture
+from Architectures.Block3.Test2.ArchitectureModel import MASArchitecture
 import os
 import operationTypes
 import random
 import sys
 
-runBatch = False
+runBatch = True
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -22,17 +22,16 @@ if __name__ == '__main__':
     # f=open('out5.txt','w')
     # sys.stdout = f
 
-
     if(runBatch):
-        fixed_params = {'width': 40, 'height': 40,'steps':500,'schedulingType':'FIFO','splitSize':1}
+        fixed_params = {'width': 40, 'height': 40,'schedulingType':'FIFO','splitSize':1,'quantity':3,'distributed':True,}
 
-        variable_params = {'distributed':[True,False],'quantity':[1,2,3,4,5]}
+        variable_params = {'method':['cheapest','dueDate','first']}
 
         batch_run = BatchRunner(
-            TrustBasedArchitecture,
+            MASArchitecture,
             variable_params,
             fixed_params,
-            iterations=50,
+            iterations=25,
             max_steps=500,
             model_reporters={
                 "Utilisation": utilisation.machine_utilisation, 
@@ -60,22 +59,22 @@ if __name__ == '__main__':
         # Save results
         if(saveResults):
             number = 0
-            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number, architecture)) == True):
+            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_{0}'.format(number)) == True):
                 number += 1
 
             # TODO: maybe make a text file that describes the test that has been run
             os.makedirs(
-                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}'.format(number, architecture))
+                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_{0}'.format(number))
 
             model_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}/model_data.pkl'.format(number, architecture))
+                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test2//test_{0}/model_data.pkl'.format(number))
             agent_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/{1}/test_{0}/agent_data.pkl'.format(number, architecture))
+                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test2//test_{0}/agent_data.pkl'.format(number))
 
     
     elif(runSingleBatch):
 
-        model = TrustBasedArchitecture(40,40,True,{
+        model = MASArchitecture(40,40,True,{
                                     "Utilisation": utilisation.machine_utilisation, 
                                     "Complete Orders": orders.ordersComplete,
                                     'Average Order Wait Time': orders.averageOrderWaitTime, 
@@ -119,10 +118,10 @@ if __name__ == '__main__':
         chart9 = ChartModule([{'Label': 'Max Messages Received','Color': 'Blue'}], data_collector_name='datacollector')
 
         
-        server = ModularServer(TrustBasedArchitecture,
+        server = ModularServer(MASArchitecture,
                             [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                             'Festo-Fetch.ai',
-                            {'width': 40, 'height': 40, 'distributed':True,'quantity':1,'schedulingType':'MDD','splitSize':2,
+                            {'width': 40, 'height': 40, 'distributed':True,'quantity':1,'schedulingType':'MDD','splitSize':1,'method':'first',
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,
