@@ -5,13 +5,13 @@ from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
 from Metrics import utilisation, orders, messages
 from matplotlib import pyplot as plt
-from Architectures.Block3.Test2.ArchitectureModel import MASArchitecture
+from Architectures.Block3.Test3.ArchitectureModel import MASArchitecture
 import os
 import operationTypes
 import random
 import sys
 
-runBatch = True
+runBatch = False
 runSingleBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # sys.stdout = f
 
     if(runBatch):
-        fixed_params = {'width': 40, 'height': 40,'schedulingType':'FIFO','splitSize':1,'quantity':3,'distributed':True,}
+        fixed_params = {'width': 40, 'height': 40,'schedulingType':'FIFO','splitSize':1,'quantity':3,'distributed':True}
 
         variable_params = {'method':['cheapest','dueDate','first']}
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
                                
     
     else:
-        grid = CanvasGrid(agent_portrayal, 40, 40, 800, 800)
+        grid = CanvasGrid(agent_portrayal, 100, 100, 1000, 1000)
         chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],data_collector_name='datacollector')
         chart2 = ChartModule([{'Label': 'Complete Orders', 'Color': 'Black'}], data_collector_name='datacollector')
         chart3 = ChartModule([{'Label': 'Average Order Wait Time','Color': 'Red'}], data_collector_name='datacollector')
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         server = ModularServer(MASArchitecture,
                             [grid, chart, chart4, chart5,  chart2, chart6, chart7, chart3,  chart9, chart8],
                             'Festo-Fetch.ai',
-                            {'width': 40, 'height': 40, 'distributed':True,'quantity':1,'schedulingType':'MDD','splitSize':1,'method':'first',
+                            {'width': 100, 'height': 100, 'distributed':True,'quantity':1,'splitSize':1,
                                 'model_reporters_dict': {
                                     "Utilisation": utilisation.machine_utilisation,
                                     "Complete Orders": orders.ordersComplete,

@@ -7,9 +7,9 @@ def messagesSent(model):
 
     for agent in model.schedule.agents:
         if agent.agentType == 'order' and not agent.void:
-            totalMessages += agent.messagesSent / agent.size
+            totalMessages += agent.totalMessagesSent / agent.size
         elif not agent.void:
-            totalMessages += agent.messagesSent
+            totalMessages += agent.totalMessagesSent
     
 
     return totalMessages

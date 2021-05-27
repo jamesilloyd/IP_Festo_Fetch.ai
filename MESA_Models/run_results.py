@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 # plt.show()
 # writer = pd.ExcelWriter('Results12356.xlsx')
 
-model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_7/model_data.pkl')
+model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_1/model_data.pkl')
 
 
 print(model_data_pickle)
@@ -30,7 +30,6 @@ print(model_data_pickle)
 
 # resultsFile16.write('{0} - {1} - {2} - {3}\n'.format(tray,part,ty,fault))
 # resultsFile16.close()
-
 
 # scheduling = quantity
 # quantity = scheduling
