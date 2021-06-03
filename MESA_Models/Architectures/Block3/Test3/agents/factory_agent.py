@@ -2,19 +2,19 @@ from mesa import Agent, Model
 from .order_agent import OrderAgent
 import random
 from .message import Message
-from .offer import Bid
+from .offer import Bid, Requirement
 
 
 '''
-	-this is the holarchy representing a manufacturing company
-    -it manages product agents, schedule staff agents and resource agents 
-    -it is responsible for creating order agents
+	-represents a manufacturing company
+    -it manages machine agents
+    -it is responsible for creating order agents to be outsourced
 '''
 class FactoryAgent(Agent):
     
     agentType = 'factory'
 
-    def __init__(self, unique_id, model, coordinates,distributed, newOrderProbability,splitSize = 1,):
+    def __init__(self, unique_id, model, coordinates,distributed, newOrderProbability,requirements,splitSize = 1):
         super().__init__(unique_id, model)
         
         self.coordinates = coordinates
@@ -39,7 +39,10 @@ class FactoryAgent(Agent):
 
         self.maxMessagesReceived = 0
         self.maxMessagesSent = 0
+        self.requirements = requirements
 
+        # TODO: calculate the time to deliver the product to the address (may not be necessary)
+        self.logisticsTime = 16
     
 
     @property
@@ -73,21 +76,14 @@ class FactoryAgent(Agent):
         return (changedX,self.coordinates[1])
     
     def step(self):
-        messagesSent = 0
-        messagesReceived = 0
+        self.maxMessagesSent = 0
+        self.maxMessagesReceived = 0
         if self.model.schedule.steps > 1 :
             self.newOrders()
 
         self.checkOrderBacklog()
-        self.checkReceivedMessages(messagesReceived,messagesSent)
+        self.checkReceivedMessages()
 
-        if self.model.schedule.steps > 5:
-            if messagesSent > self.maxMessagesSent:
-                self.maxMessagesSent = messagesSent
-            if messagesReceived > self.maxMessagesReceived:
-                self.maxMessagesReceived = messagesReceived
-        
-            
 
 
     def checkOrderBacklog(self):
@@ -97,32 +93,36 @@ class FactoryAgent(Agent):
             capableMachineIds = self.capabilityCheck(agent,inHouse=True)
 
             # Choose which resource to allocate it to
-            if capableMachineIds:
-                chosenMachineDict = random.choice(capableMachineIds)
-                chosenMachineId = chosenMachineDict['machineId']
-                print('Factory {} - Order {} can be done inhouse on Machine {}'.format(self.unique_id,agent.unique_id,chosenMachineId))
-                for machineAgent in self.model.schedule.agents:
-                    if machineAgent.unique_id == chosenMachineId:
-                        machineAgent.backLogOrders.append(agent)
-                        agent.status = 'waitingInHouse'
-                        machineAgent.timeUntilFree += agent.quantity * agent.timeToComplete
-                        self.model.grid.move_agent(agent,machineAgent.backlogCoordinates)
+            # if capableMachineIds:
+            #     chosenMachineDict = random.choice(capableMachineIds)
+            #     chosenMachineId = chosenMachineDict['machineId']
+            #     machineAgent = self.model.schedule._agents[chosenMachineId]
+            #     price = machineAgent.hourlyRate * agent.unitOperationTime * agent.quantity * machineAgent.speedFactor
+            #     print('Factory {} - Order {} can be done inhouse on machine {} for £{}'.format(self.unique_id,agent.unique_id,chosenMachineId,price))
+
+            #     agent.winningPrice = price
+                
+            #     machineAgent.backLogOrders.append(agent)
+            #     agent.status = 'waitingInHouse'
+            #     machineAgent.timeUntilFree += agent.quantity * agent.unitOperationTime * machineAgent.speedFactor
+            #     self.model.grid.move_agent(agent,machineAgent.backlogCoordinates)
+            #     # TODO: calculate the price
 
             
-            # If we don't have the capbailies tell the order the earliest date
-            elif(self.distributed):
-                print('Factory {} - Order {} needs to be outsourced'.format(self.unique_id,agent.unique_id))
-                newMessage = Message(self.unique_id,'findResources')
-                agent.receivedMessages.append(newMessage)
-                self.totalMessagesSent += 1
-                # Remove the agent from the backlog
-                self.newOrdersBacklog.remove(agent)
-            else:
-                print('Factory {} - Order {} cannot be completed'.format(self.unique_id,agent.unique_id))
-                self.model.grid.move_agent(agent,self.unsuccessfulOrderCoordinates)
-                agent.completed = True
-                agent.successful = False
-                agent.status = 'unsuccessful'
+            # # If we don't have the capbailies tell the order the earliest date
+            # elif(self.distributed):
+            print('Factory {} - Order {} needs to be outsourced'.format(self.unique_id,agent.unique_id))
+            newMessage = Message(self.unique_id,'findResources')
+            agent.receivedMessages.append(newMessage)
+            self.totalMessagesSent += 1
+            # Remove the agent from the backlog
+            self.newOrdersBacklog.remove(agent)
+            # else:
+            #     print('Factory {} - Order {} cannot be completed'.format(self.unique_id,agent.unique_id))
+            #     self.model.grid.move_agent(agent,self.unsuccessfulOrderCoordinates)
+            #     agent.completed = True
+            #     agent.successful = False
+            #     agent.status = 'unsuccessful'
         
         self.newOrdersBacklog.clear()
 
@@ -131,15 +131,15 @@ class FactoryAgent(Agent):
 
     # DONE
     def newOrders(self):
-        # Give a 20% probability that a new order will arrive into the system
-        # Can only have orders that the company has resources for??? 
+        # Give a probability that a new order will arrive into the system
+        # Can only have orders that the company has resources for
         number = random.randrange(self.newOrderProbability)
         if(number == 0):
             capabilities = []
             for key in self.capabilities.keys():
                 capabilities.append(key)
                 
-            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities,self.unique_id,splitSize=self.splitSize)
+            orderAgent = OrderAgent(self.model.schedule.get_agent_count()+1,self.model,capabilities,self.unique_id,splitSize=self.splitSize,requirements=self.requirements)
             self.model.schedule.add(orderAgent)
             self.model.grid.place_agent(orderAgent,self.newOrderCoordinates)
             self.newOrdersBacklog.append(orderAgent)
@@ -147,15 +147,17 @@ class FactoryAgent(Agent):
     
 
 
-    def checkReceivedMessages(self,messagesReceived,messagesSent):
+    # def checkReceivedMessages(self,messagesRece):
+    def checkReceivedMessages(self):
+
         # check received messages
         for message in self.receivedMessages:
             self.totalMessegesReceived += 1
-            messagesReceived +=1
-
+            self.maxMessagesReceived +=1
 
             if message.type == "resourceRequest":
                 print('Factory {} - received resource request for order {}'.format(self.unique_id,message.fromId))
+                
                 # Check whether we can carry out the operation
                 capableMachines = self.capabilityCheck(message.orderAgent)
                 messages = []
@@ -165,7 +167,7 @@ class FactoryAgent(Agent):
 
                         bid = Bid({'price':machineDict['price'],'completeTime':machineDict['completeTime'],'quantity':message.orderAgent.quantity,'productType':message.orderAgent.productType},self.unique_id,machineDict['machineId'])
 
-                        print('Factory {} - can carry out order {} for €{} on machine {} at time {}'.format(self.unique_id,message.fromId,bid.entries['price'],bid.machineId,bid.entries['price']))
+                        print('Factory {} - can carry out order {} for €{} on machine {} by time {}'.format(self.unique_id,message.fromId,bid.entries['price'],bid.machineId,bid.entries['completeTime']))
                         returnMessage = Message(self.unique_id,'bid',canCarryOutRequest=True,bid = bid)
                         
                         messages.append(returnMessage)
@@ -174,13 +176,11 @@ class FactoryAgent(Agent):
                     returnMessage = Message(self.unique_id,'bid',canCarryOutRequest=False)
                     messages.append(returnMessage)
 
-
-                for agent in self.model.schedule.agents:
-                    if agent.unique_id == message.fromId:
-                        for returnMessage in messages:
-                            agent.receivedMessages.append(returnMessage)
-                            self.totalMessagesSent += 1 
-                            messagesSent +=1
+                agent = self.model.schedule._agents[message.fromId]
+                for returnMessage in messages:
+                    agent.receivedMessages.append(returnMessage)
+                    self.totalMessagesSent += 1 
+                    self.maxMessagesSent +=1
             
             elif message.type == 'accounceCapabilitiesMachine':
 
@@ -196,32 +196,29 @@ class FactoryAgent(Agent):
                         capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
                         agent.receivedMessages.append(capabilitiesMessage)
                         self.totalMessagesSent += 1
-                        messagesSent +=1
+                        self.maxMessagesSent +=1
+                        break
 
         self.receivedMessages.clear()
 
 
-
-
-    # TODO: this should probably be carried out by the machine ... depends on MES integration
     def capabilityCheck(self,agent,inHouse = False):
         capableMachines = []
         if(agent.productType in self.capabilities):
             # Ask the resources if they can carry it out
-            for machineAgent in self.model.schedule.agents:
-                if machineAgent.unique_id in self.capabilities[agent.productType]['ids']:
+            for id in self.capabilities[agent.productType]['ids']:
+                machineAgent = self.model.schedule._agents[id]
+            
+                print('MACHINE AGENT {} - CAPABILITY {} - TIME UNTIL FREE {} - DUE DATE {} - TIME TO COMPLETE {} - LOGISTICS TIME {}'.format(machineAgent.unique_id,machineAgent.typeOfOperation,machineAgent.timeUntilFree,agent.dueDate,machineAgent.speedFactor *agent.quantity*agent.unitOperationTime,self.logisticsTime))
 
-                    # print('{} - {} - {}'.format(machineAgent.timeUntilFree,agent.dueDate,agent.timeToComplete * agent.quantity))
+                completeTime = agent.unitOperationTime * agent.quantity * machineAgent.speedFactor + machineAgent.timeUntilFree + self.logisticsTime
 
-                    completeTime = agent.timeToComplete*agent.quantity + machineAgent.timeUntilFree 
-
-                    if completeTime < agent.dueDate:
-                        capableMachines.append({'completeTime':completeTime,'machineId':machineAgent.unique_id,'price':machineAgent.hourlyRate * agent.quantity * agent.timeToComplete})
-                        if(not inHouse):
-                            #We update this elsewhere if doing in house
-                            machineAgent.timeUntilFree += completeTime
-                            
-
+                if completeTime < agent.dueDate:
+                    capableMachines.append({'completeTime':completeTime,'machineId':machineAgent.unique_id,'price':machineAgent.hourlyRate * agent.quantity * agent.unitOperationTime * machineAgent.speedFactor})
+                    if(not inHouse):
+                        #We update this elsewhere if doing in house
+                        machineAgent.timeUntilFree += agent.unitOperationTime * agent.quantity * machineAgent.speedFactor 
+                        
 
         return capableMachines
 

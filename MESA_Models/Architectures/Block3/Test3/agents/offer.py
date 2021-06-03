@@ -47,8 +47,6 @@ class Requirement():
 
     def weightedScore(self,value,min,max):
         return self.score(value,min,max)*self.weight
-
-
     
 
     def score(self,value,min,max):

@@ -39,28 +39,25 @@ class TrustFederationAgent(Agent):
 
     
     def step(self):
-        messagesReceived = 0
-        messagesSent = 0
+        self.maxMessagesReceived = 0
+        self.maxMessagesSent = 0
         for message in self.receivedMessages:
             self.totalMessagesReceived += 1
-            messagesReceived += 1
+            self.maxMessagesReceived += 1
             if message.type == 'idsRequest':
                 print('Federator {} - received ids request from order {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
                 factoryIds = []
                 if message.capability in self.factoryCapabilities:
                     factoryIds.extend(self.factoryCapabilities[message.capability])
                 
-        
                 newMessage = Message(self.unique_id,'idsResponse',requestedIds=factoryIds)
                 
-                for agent in self.model.schedule.agents:
-                    if agent.unique_id == message.fromId:
-                        agent.receivedMessages.append(newMessage)
-                        self.totalMessagesSent += 1
-                        messagesSent  += 1
-                else:
-                    # TODO: handle capability not existing
-                    pass
+                
+                # This returns an empty list if their are no factories with this capability
+                agent = self.model.schedule._agents[message.fromId]
+                agent.receivedMessages.append(newMessage)
+                self.totalMessagesSent += 1
+                self.maxMessagesSent  += 1
                     
             if message.type == 'announceCapabiliesFactory':
                 for capability in message.capabilities:
@@ -71,21 +68,4 @@ class TrustFederationAgent(Agent):
                         self.factoryCapabilities.update({capability:[message.fromId]})
 
 
-        
-
         self.receivedMessages.clear()
-
-        if self.model.schedule.steps > 5:
-            if messagesSent > self.maxMessagesSent:
-                self.maxMessagesSent = messagesSent
-            if messagesReceived > self.maxMessagesReceived:
-                self.maxMessagesReceived = messagesReceived
-
-
-        
-
-
-
-    
-
-

@@ -15,30 +15,52 @@ def messagesSent(model):
     return totalMessages
 
 
-def maxMessagesSentFromNode(model):
+def maxMessagesSentFromOrder(model):
 
     maxMessages = 0
 
-
     for agent in model.schedule.agents:
-        
-        if agent.maxMessagesSent > maxMessages and not agent.void:
+        if agent.maxMessagesSent > maxMessages and not agent.void and agent.agentType == 'order':
             maxMessages = agent.maxMessagesSent
 
     return maxMessages
 
 
 
-def maxMessagesReceivedByNode(model):
+def maxMessagesReceivedByOrder(model):
 
     maxMessages = 0
 
     for agent in model.schedule.agents:
-        if agent.maxMessagesReceived > maxMessages and not agent.void:
+        if agent.maxMessagesReceived > maxMessages and not agent.void and agent.agentType == 'order':
             maxMessages = agent.maxMessagesReceived 
 
     return maxMessages
 
+
+
+def maxMessagesSentFromFactory(model):
+
+    maxMessages = 0
+
+    for agent in model.schedule.agents:
+        
+        if agent.maxMessagesSent > maxMessages and not agent.void and agent.agentType == 'factory':
+            maxMessages = agent.maxMessagesSent
+
+    return maxMessages
+
+
+
+def maxMessagesReceivedByFactory(model):
+
+    maxMessages = 0
+
+    for agent in model.schedule.agents:
+        if agent.maxMessagesReceived > maxMessages and not agent.void and agent.agentType == 'factory':
+            maxMessages = agent.maxMessagesReceived 
+
+    return maxMessages
 
 
 

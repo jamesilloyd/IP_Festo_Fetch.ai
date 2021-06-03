@@ -2,9 +2,6 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 
-# TODO: have way of changing this path
-
-
 # plt.scatter(model_data_pickle.schedulingType,model_data_pickle.Utilisation)
 # plt.show()
 
@@ -12,7 +9,7 @@ from matplotlib import pyplot as plt
 # plt.show()
 # writer = pd.ExcelWriter('Results12356.xlsx')
 
-model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test2/test_1/model_data.pkl')
+model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_0/model_data.pkl')
 
 
 print(model_data_pickle)
@@ -36,29 +33,40 @@ print(model_data_pickle)
 # plt.scatter(model_data_pickle.splitSize,model_data_pickle.Utilisation)
 # plt.show()
 
-# "Utilisation": utilisation.machine_utilisation, 
-#                 "Complete_Orders": orders.ordersComplete,
-#                 'Average_Order_Wait_Time': orders.averageOrderWaitTime, 
-#                 "Successful_Orders":orders.successfulOrders,
-#                 'Messages_Sent': messages.messagesSent, 
-#                 'Late_Orders':orders.lateOrders,
-#                 'WIP_Backlog':orders.totalWIPSize, 
-#                 'Max_Messages_Sent': messages.maxMessagesSentFromNode, 
-#                 'Max_Messages_Received': messages.maxMessagesReceivedByNode},
-
-# plt.subplot(3,2,1)
-plt.scatter(model_data_pickle.method,model_data_pickle.Utilisation)
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Utilisation)
 plt.title('Utilisation')
 plt.show()
-plt.scatter(model_data_pickle.method,model_data_pickle.Average_Order_Wait_Time)
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Average_Order_Wait_Time)
 plt.title('Wait Time')
 plt.show()
-plt.scatter(model_data_pickle.method,model_data_pickle.Successful_Orders)
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Orders)
 plt.title('Successful Orders')
 plt.show()
-plt.scatter(model_data_pickle.method,model_data_pickle.Late_Orders)
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Late_Orders)
 plt.title('Late Orders')
 plt.show()
-plt.scatter(model_data_pickle.method,model_data_pickle.WIP_Backlog)
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Outsourced_Orders)
+plt.title('Outsourced Orders')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Price_Average)
+plt.title('Successful_Order_Price_Average')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Price_ASAP_Agent)
+plt.title('Successful_Order_Price_ASAP_Agent')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Price_Cheap_Agent)
+plt.title('Successful_Order_Price_Cheap_Agent')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Makespan_Average)
+plt.title('Successful_Order_Makespan_Average')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Makespan_ASAP_Agent)
+plt.title('Successful_Order_Makespan_ASAP_Agent')
+plt.show()
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.Successful_Order_Makespan_Cheap_Agent)
+plt.title('Successful_Order_Makespan_Cheap_Agent')
+plt.show()
+
+plt.scatter(model_data_pickle.proportion_of_weights,model_data_pickle.WIP_Backlog)
 plt.title('Backlog')
 plt.show()

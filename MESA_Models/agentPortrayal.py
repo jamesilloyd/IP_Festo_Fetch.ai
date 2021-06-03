@@ -5,10 +5,14 @@ def agent_portrayal(agent):
     # TODO: do we need to add this agentType into the original class?
     if(agent.agentType == 'order'):
         color = ''
+        textColor = 'white'
         if(agent.completed and agent.successful):
             color = 'green'
         elif(agent.completed and not agent.successful):
             color = 'red'
+        elif(agent.outsourced):
+            color = 'yellow'
+            textColor = 'black'
         else:
             color = 'blue'
         
@@ -20,7 +24,7 @@ def agent_portrayal(agent):
         portrayal = {"Shape": "circle",
                 "Color": color,
                 "Filled": "true",
-                'text_color':'white',
+                'text_color':textColor,
                 "Layer": 0.5,
                 'text': str(agent.unique_id),
                 "r": r}
@@ -28,7 +32,7 @@ def agent_portrayal(agent):
         portrayal = {"Shape": "rect",
                 "Color": 'green',
                 "Filled": "true",
-                'text': agent.typeOfOperation,
+                'text': agent.typeOfOperation + ' - ' + str(agent.unique_id),
                 'text_color':'black',
                 "Layer": 0,
                 "w": 1,'h':1 }

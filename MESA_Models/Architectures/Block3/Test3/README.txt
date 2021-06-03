@@ -1,18 +1,14 @@
+Test 3 (this happened ...)
+
+- Worst possible scenario.
+
+- Running a test with 1 SOEF, every single manufacturer using the marketplace and seeing how many messages are sent to each company every minute.
+
+
 Test 3
+- comparing the weights and seeing the effect
+    -First try was seeing if variations in cheap and asap order had much affect (not much)
 
-Adding in the first draft of the brokering system. 
-
-Sequence of events:
-- Order agent chooses requirements, constraints and weightings 
-- Asks SOEF/Federator agent for a list of company ids
-- Sends request to each company
-- Companies formulate a bid and return
-- Order agent chooses dominating bid
-
-TODOs
-- ability for order agent to choose requirements, constraints and weightings
-- sample offers
-- generate sample return bids 
-- waiting for transportation
-
+-now going to add in "FAST and EXPENSIVE" machines and just check that ASAP ordrs get matched with FAST machines 
+    -50/50 split for the machine types
 

@@ -17,7 +17,6 @@ def totalWIPSize(model):
     for agent in model.schedule.agents:
         if(agent.agentType == 'machine'):
             totalWIPSize += len(agent.backLogOrders)
-            # print('BACKLOG SIZE: machine {} size {}'.format(agent.unique_id,len(agent.backLogOrders)))
             if(agent.isOperating):
                 totalWIPSize += 1
     
@@ -41,6 +40,122 @@ def successfulOrders(model):
         return 0
     else:
         return total_successful_orders / total_orders
+
+def outsourcedOrders(model):
+    # Out of all orders (successful or unsuccessful) this is the number of ones that have been outsourcee
+
+    total_orders = 0
+    total_outsourced_orders = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void):
+            total_orders += 1 / agent.size
+            if(agent.outsourced):
+                total_outsourced_orders +=1 / agent.size
+
+
+    if total_orders == 0:
+        return 0
+    else:
+        return total_outsourced_orders / total_orders
+
+def averageSuccessfulOrderPrice(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    price = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful):
+            price += agent.winningPrice
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return price / total_successful_orders
+
+def averageSuccessfulOrderMakeSpan(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    makeSpan = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful):
+            makeSpan += (agent.completedDate - agent.createdDate)
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return makeSpan / total_successful_orders
+
+
+
+def averageSuccessfulOrderPriceASAP(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    price = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful and agent.requirementType == 'asap'):
+            price += agent.winningPrice
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return price / total_successful_orders
+
+def averageSuccessfulOrderMakeSpanASAP(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    makeSpan = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful and agent.requirementType == 'asap'):
+            makeSpan += (agent.completedDate - agent.createdDate)
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return makeSpan / total_successful_orders
+
+def averageSuccessfulOrderPriceCheap(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    price = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful and agent.requirementType == 'cheap'):
+            price += agent.winningPrice
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return price / total_successful_orders
+
+def averageSuccessfulOrderMakeSpanCheap(model):
+    # How much does a successful order usually sell for
+
+    total_successful_orders = 0
+    makeSpan = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and agent.completed and not agent.void and agent.successful and agent.requirementType == 'cheap'):
+            makeSpan += (agent.completedDate - agent.createdDate)
+            total_successful_orders += 1
+
+    if total_successful_orders == 0:
+        return 0
+    else:
+        return makeSpan / total_successful_orders
 
 def lateOrders(model):
 
@@ -83,3 +198,40 @@ def individualOrderWaitTime(agent):
         return None
 
     
+
+# Test this works - add into the visual run  mode of the simulator
+
+def cheapOrdersWithCheapMachines(model):
+
+    total_successful_agents = 0
+    total_cheap_cheap_agents = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and not agent.void and agent.completed and agent.successful and agent.requirementType == 'cheap'):
+            total_successful_agents += 1
+            
+            if(agent.winningMachineType == agent.requirementType):
+                total_cheap_cheap_agents += 1
+    
+    if(total_successful_agents == 0):
+        return 0
+    else:
+        return total_cheap_cheap_agents/total_successful_agents
+
+
+def asapOrdersWithFastMachines(model):
+
+    total_successful_agents = 0
+    total_asap_asap_agents = 0
+
+    for agent in model.schedule.agents:
+        if(agent.agentType == 'order' and not agent.void and agent.completed and agent.successful and agent.requirementType == 'asap'):
+            total_successful_agents += 1
+            
+            if(agent.winningMachineType == agent.requirementType):
+                total_asap_asap_agents += 1
+    
+    if(total_successful_agents == 0):
+        return 0
+    else:
+        return total_asap_asap_agents/total_successful_agents
