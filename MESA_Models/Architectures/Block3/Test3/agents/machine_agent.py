@@ -12,23 +12,24 @@ class MachineAgent(Agent):
 
     agentType = 'machine'
 
-    def __init__(self, unique_id, model, typeOfOperation, coordinates, factoryId,fastOrCheap):
+    def __init__(self, unique_id, model, typeOfOperation, coordinates, factoryId,asapOrCheap):
         super().__init__(unique_id, model)
         self.typeOfOperation = typeOfOperation
         self.coordinates = coordinates
         self.factoryId = factoryId
         
         self.isOperating = False
-        self.fastOrCheap = fastOrCheap
-        if(fastOrCheap == 'cheap'):
-            self.hourlyRate = 0.7*random.randrange(operationDictionary[self.typeOfOperation]['resourceHourlyRate'][0],operationDictionary[self.typeOfOperation]['resourceHourlyRate'][1])
+        self.fastOrCheap = asapOrCheap
+
+
+        if(asapOrCheap == 'cheap'):
+            
+            self.hourlyRate = random.uniform(operationDictionary[self.typeOfOperation]['resourceHourlyRate'][0],operationDictionary[self.typeOfOperation]['resourceHourlyRate'][1])
             # TODO: there will be some variation here but the actual time will be determined by the type of part
-            # self.unitOperationTime = random.randrange(operationDictionary[self.typeOfOperation]['unitOperationTimes'][0],operationDictionary[self.typeOfOperation]['unitOperationTimes'][1])
-            self.speedFactor = 1.3
-        elif(fastOrCheap == 'asap'):
-            self.hourlyRate = 1.3*random.randrange(operationDictionary[self.typeOfOperation]['resourceHourlyRate'][0],operationDictionary[self.typeOfOperation]['resourceHourlyRate'][1])
+            self.speedFactor = 1
+        elif(asapOrCheap == 'asap'):
+            self.hourlyRate = 2*random.uniform(operationDictionary[self.typeOfOperation]['resourceHourlyRate'][0],operationDictionary[self.typeOfOperation]['resourceHourlyRate'][1])
             # TODO: there will be some variation here but the actual time will be determined by the type of part
-            # self.unitOperationTime = random.randrange(operationDictionary[self.typeOfOperation]['unitOperationTimes'][0],operationDictionary[self.typeOfOperation]['unitOperationTimes'][1])
             self.speedFactor = 0.7
 
         self.timeLeftOnOperation = 0
@@ -67,17 +68,15 @@ class MachineAgent(Agent):
         if (self.backLogOrders and not self.isOperating):
             self.order = self.backLogOrders[0]
             self.backLogOrders.pop(0)
-            print('Backlogsize {}'.format(len(self.backLogOrders)))
             self.order.inOperation = True
-            print('Machine {} - moving order {}'.format(self.unique_id,self.order.unique_id))
+            #print('Machine {} - moving order {}'.format(self.unique_id,self.order.unique_id))
             self.model.grid.move_agent(self.order,self.coordinates)
             self.isOperating = True
             self.timeLeftOnOperation = self.order.unitOperationTime * self.order.quantity * self.speedFactor
         
         for message in self.receivedMessages:
             if message.type == 'unsuccessfulBid':
-                print('Machine {} - received unsuccessful bid notice from order {}'.format(self.unique_id,message.fromId))
-                
+                #print('Machine {} - received unsuccessful bid notice from order {}'.format(self.unique_id,message.fromId))
                 # Removed the reserved time for this order
                 self.timeUntilFree -= message.orderAgent.quantity * message.orderAgent.unitOperationTime * self.speedFactor
         
@@ -89,13 +88,23 @@ class MachineAgent(Agent):
             self.timeWorking += 1
             if(self.timeLeftOnOperation <= 0):
                 self.isOperating = False
-                # Add the operation to the completed pile
-                # self.order.completed = True
-                # self.order.completedDate = self.model.schedule.steps
-                self.order.status = 'dispatched'
-                self.order.winningMachineType = self.fastOrCheap
-                agent = self.model.schedule._agents[self.factoryId]
-                self.model.grid.move_agent(self.order,agent.dispatchOrderCoordinates)
+                
+                
+                if(self.order.outsourced):
+                    # Order needs to be sent back to origin factory
+                    self.order.status = 'dispatched'
+                    self.order.winningMachineType = self.fastOrCheap
+                    agent = self.model.schedule._agents[self.factoryId]
+                    self.model.grid.move_agent(self.order,agent.dispatchOrderCoordinates)
+                else:
+                    # Order is completed within it's own factory
+                    self.order.winningMachineType = self.fastOrCheap
+                    self.order.completed = True
+                    self.order.completedDate = self.model.schedule.steps
+                    self.status = 'completed'
+                    factoryAgent = self.model.schedule._agents[self.factoryId]
+                    self.model.grid.move_agent(
+                        self, factoryAgent.completedOrderCoordinates)
                 
                 self.order = None
             

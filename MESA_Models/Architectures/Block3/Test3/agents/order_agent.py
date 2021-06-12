@@ -17,7 +17,7 @@ class OrderAgent(Agent):
 
     agentType = 'order'
 
-    def __init__(self, unique_id, model, facotryCapabilities, factoryId, requirements, splitSize=1):
+    def __init__(self, unique_id, model, facotryCapabilities, factoryId, splitSize=1):
         super().__init__(unique_id, model)
 
         self.operations = []
@@ -61,43 +61,47 @@ class OrderAgent(Agent):
 
         self.winningPrice = 0
         self.winningMachineType = ''
+        self.finalSatisfactionScore = -1
 
         # From data requests this seems to be the standard size of orders
         # TODO: need to initialise with the requirements and contraints
         self.quantity = random.randrange(
             operationDictionary[self.productType]['usualQuantity'][0], operationDictionary[self.productType]['usualQuantity'][1])
 
-        # IS IT AN EASY OR COMPLEX PART?
-        # In reality this would be calculated by the factory
+        # How complex is the part
         self.unitOperationTime = random.uniform(
             operationDictionary[self.productType]['unitOperationTimes'][0], operationDictionary[self.productType]['unitOperationTimes'][1])
-        # TODO: this needs to be extended a bit more
-        self.dueDate = self.model.schedule.steps + random.uniform(operationDictionary[self.productType]['unitOperationTimes'][1],operationDictionary[self.productType]['unitOperationTimes'][1]*1.2)* self.quantity + self.logisticsTime + 10  # Contingency for the time taken for the negotiation to finish
-        print(self.quantity)
-        print(self.dueDate)
 
-        self.requirementType = requirements
+        self.dueDate = self.model.schedule.steps + random.uniform(operationDictionary[self.productType]['unitOperationTimes'][1],operationDictionary[self.productType]['unitOperationTimes'][1]*1.5)* self.quantity + self.logisticsTime + 10  # Contingency for the time taken for the negotiation to finish
+        
+        
 
         self.requirements = [
             Requirement('quantity', 'hard', 1, self.quantity),
             Requirement('productType', 'hard', 1, self.productType)
         ]
 
-        if(requirements == 'cheap'):
-            print('Order {} = cheap'.format(self.unique_id))
+        requirementWeights = round(random.uniform(0,1),1)
 
-            self.requirements.extend(
-                [Requirement('price', 'soft_cost', 1, 10000), Requirement(
-                    'completeTime', 'soft_cost', 0, 1500)]
+        if(requirementWeights == 0.5):
+            #print('Order = no-preference')
+            self.requirementType = 'neutral'
+
+        elif(requirementWeights < 0.5):
+            #print('Order = no-preference')
+            self.requirementType = 'asap'
+
+        elif(requirementWeights > 0.5):
+            #print('Order = no-preference')
+            self.requirementType = 'cheap'
+
+        
+
+        # Simple weight proportaion test
+        self.requirements.extend(
+                [Requirement('price', 'soft_cost', requirementWeights, 50000), Requirement(
+                    'completeTime', 'soft_cost', 1 - requirementWeights, self.dueDate)]
             )
-
-        elif(requirements == 'asap'):
-            print('Order {} = asap'.format(self.unique_id))
-            self.requirements.extend(
-                [Requirement('price', 'soft_cost', 0, 50000), Requirement(
-                    'completeTime', 'soft_cost', 1, self.dueDate)]
-            )
-
 
         self.completedDate = 0
         self.maxMessagesReceived = 0
@@ -144,12 +148,12 @@ class OrderAgent(Agent):
                 pass
             else:
                 # Waiting for operation
-                # print('ORDER {} WAITING {} - {} - Due Date {} - Complete time {}'.format(self.unique_id,self.waitTime,self.status,self.dueDate,self.unitOperationTime * self.quantity))
+                # #print('ORDER {} WAITING {} - {} - Due Date {} - Complete time {}'.format(self.unique_id,self.waitTime,self.status,self.dueDate,self.unitOperationTime * self.quantity))
                 self.waitTime += 1
 
     def findResources(self, message):
         # Initial factory cannot complete me so I need to find other ids
-        print('Order {} - Asking Federator for ids'.format(self.unique_id))
+        #print('Order {} - Asking Federator for ids'.format(self.unique_id))
         # Ask federator for company ids
 
         for agent in self.model.schedule.agents:
@@ -169,11 +173,10 @@ class OrderAgent(Agent):
                 self.requestedIds.append(factoryId)
 
         if(self.requestedIds):
-            print('Order {} - received request ids'.format(self.unique_id))
+            #print('Order {} - received request ids'.format(self.unique_id))
             self.status = 'receivedIds'
             # Send messages out to those ids
-            print(
-                'Order {} - Sending resource requests to {}'.format(self.unique_id, self.requestedIds))
+            #print('Order {} - Sending resource requests to {}'.format(self.unique_id, self.requestedIds))
             for id in self.requestedIds:
                 factoryAgent = self.model.schedule._agents[id]
                 # TODO: feel uneasy about dropping the object in the message
@@ -185,7 +188,7 @@ class OrderAgent(Agent):
             self.status = 'waitingForResponseFromFactories'
         else:
             # There are no factories with this capability
-            print('Order {} - received no compatible ids'.format(self.unique_id))
+            #print('Order {} - received no compatible ids'.format(self.unique_id))
             self.completed = True
             self.successful = False
             self.status = "Completed"
@@ -202,14 +205,12 @@ class OrderAgent(Agent):
 
         if message.canCarryOutRequest:
             bid = message.bid
-            print('Order {} - received offer from factory {} on machine {} for £{} by {}'.format(
-                self.unique_id, bid.factoryId, bid.machineId, bid.entries['price'], bid.entries['completeTime']))
-            print(bid)
+            #print('Order {} - received offer from factory {} on machine {} for €{} by {}'.format(self.unique_id, bid.factoryId, bid.machineId, bid.entries['price'], bid.entries['completeTime']))
             self.receivedOffers.append(bid)
 
     def matchmakingProcess(self):
         if self.negotiationTimer == 0:
-            print('Order {} - Choosing winning bid'.format(self.unique_id))
+            #print('Order {} - Choosing winning bid'.format(self.unique_id))
 
             # If the offers list is empty then send the order to the unsuccessful pile
             if not self.receivedOffers or len(self.receivedOffers) < self.size:
@@ -236,26 +237,25 @@ class OrderAgent(Agent):
                         bid.entries['productType'])
                     allBidValues['quantity'].append(bid.entries['quantity'])
 
-                for requirement in self.requirements:
-                    print(requirement)
+                # for requirement in self.requirements:
+                    #print('Order {} - {}'.format(self.unique_id,requirement))
 
                 for bid in self.receivedOffers:
                     for requirement in self.requirements:
                         # Evaluate the score for each requirement Type
                         score = requirement.weightedScore(bid.entries[requirement.requirementName], min(
                             allBidValues[requirement.requirementName]), max(allBidValues[requirement.requirementName]))
-                        print(
-                            'Requirement {} - Score {}'.format(requirement.requirementName, score))
+                        #print('Order {} - Requirement {} - Score {}'.format(self.unique_id,requirement.requirementName, score))
                         if(score < 0):
                             # Broken hard constraint
                             bid.score = -1
                             break
                         else:
                             bid.score += score
-                    print(bid)
+                    #print('Order - {} - Bid {}'.format(self.unique_id,bid))
 
                 # Check if any of the bids are positive
-                chosenOffer = None
+                chosenOffer = None 
                 notChosenOffers = []
                 bestScore = 0
                 foundWinningBid = False
@@ -278,10 +278,10 @@ class OrderAgent(Agent):
                 else:
                     self.status = 'successfullyOutsourced'
                     self.outsourced = True
+                    self.finalSatisfactionScore = chosenOffer.score
                     self.winningPrice = chosenOffer.entries['price']
                     chosenMachine = self.model.schedule._agents[chosenOffer.machineId]
-                    print('Order {0} - Chosen factory {1} - machine {2} at a bid of €{3}'.format(
-                        self.unique_id, chosenOffer.factoryId, chosenMachine.unique_id, chosenOffer.entries['price']))
+                    #print('Order {0} - Chosen factory {1} - machine {2} at a bid of €{3}'.format(self.unique_id, chosenOffer.factoryId, chosenMachine.unique_id, chosenOffer.entries['price']))
                     if self.size == 1:
                         self.model.grid.move_agent(
                             self, chosenMachine.backlogCoordinates)
@@ -293,8 +293,7 @@ class OrderAgent(Agent):
                         # TODO: if you come back to this make sure to add in additional attributes (maybe theres a better way of doing this?)
                         newAgent = OrderAgent(self.model.schedule.get_agent_count(
                         )+1, self.model, ['CNC'], self.factoryId)
-                        print('Order {} - creating new order {} to finish the job'.format(
-                            self.unique_id, newAgent.unique_id))
+                        #print('Order {} - creating new order {} to finish the job'.format(self.unique_id, newAgent.unique_id))
                         newAgent.status = self.status
                         newAgent.productType = self.productType
                         newAgent.lookingForResource = self.lookingForResource
@@ -327,25 +326,23 @@ class OrderAgent(Agent):
                         self.maxMessagesSent += 1
 
                     if self.size != 1:
-                        print(
-                            'Order {} - created sub agents, time for me to die'.format(self.unique_id))
+                        #print('Order {} - created sub agents, time for me to die'.format(self.unique_id))
                         self.model.grid.remove_agent(self)
                         self.void = True
 
         else:
             self.negotiationTimer -= 1
-            print('Order {} - Waiting to receive all bids - {} hours left'.format(
-                self.unique_id, self.negotiationTimer))
+            #print('Order {} - Waiting to receive all bids - {} hours left'.format(self.unique_id, self.negotiationTimer))
 
     def splitAndReproposeToFactories(self):
         # Set the attribute to false so it doesn't repeat
         self.canSplit = False
-        print('Order {} - Recieved no viable offers - going to split production'.format(self.unique_id))
+        #print('Order {} - Recieved no viable offers - going to split production'.format(self.unique_id))
         # TODO: be careful here ****************************
         self.size = self.splitSize
         self.quantity = self.quantity / self.splitSize
         # We can split, so let's try sending those offers out again, but we need to be looking for double the amount nows
-        print('Order {} - Sending resource requests to {}'.format(self.unique_id, self.requestedIds))
+        #print('Order {} - Sending resource requests to {}'.format(self.unique_id, self.requestedIds))
 
         for id in self.requestedIds:
             factoryAgent = self.model.schedule._agents[id]
@@ -358,7 +355,7 @@ class OrderAgent(Agent):
         self.status = 'waitingForResponseFromFactories'
 
     def receivedNoViableOffers(self):
-        print('Order {} - Recieved no viable offers - unsuccessful'.format(self.unique_id))
+        #print('Order {} - Recieved no viable offers - unsuccessful'.format(self.unique_id))
         self.size = 1
         self.status = 'Completed'
         self.completed = True

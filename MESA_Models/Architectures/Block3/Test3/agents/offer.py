@@ -1,4 +1,4 @@
-# Requirements
+# Example Requirements
     # pricing 
     # quantity
     # due date
@@ -28,7 +28,7 @@
 
 # Weights for soft and interval constraints
 
-# Penalties
+# Penalties (not modelled)
     # Late 
     # Cancellation
     # Poor quality

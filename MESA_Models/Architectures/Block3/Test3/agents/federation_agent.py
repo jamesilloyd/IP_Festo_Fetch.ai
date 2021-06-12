@@ -45,7 +45,7 @@ class TrustFederationAgent(Agent):
             self.totalMessagesReceived += 1
             self.maxMessagesReceived += 1
             if message.type == 'idsRequest':
-                print('Federator {} - received ids request from order {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
+                #print('Federator {} - received ids request from order {} for capability {}'.format(self.unique_id,message.fromId,message.capability))
                 factoryIds = []
                 if message.capability in self.factoryCapabilities:
                     factoryIds.extend(self.factoryCapabilities[message.capability])

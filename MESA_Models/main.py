@@ -3,18 +3,16 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
 from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
-from Metrics import utilisation, orders, messages
+import metrics
 from matplotlib import pyplot as plt
 from Architectures.Block3.Test3.ArchitectureModel import MASArchitecture
 import os
 import random
 import sys
 
-runBatch = False
-runSingleBatch = False
+runBatch = True
 architecture = 'Inter-Firm'
 saveResults = True
-
 
 if __name__ == '__main__':
 
@@ -22,41 +20,53 @@ if __name__ == '__main__':
     # f=open('out5.txt','w')
     # sys.stdout = f
 
-    # {'width': 60, 'height': 60, 'distributed':True,'quantity':100,'splitSize':1,'newOrderProbability':80,'proportion_of_weights':1,
-
     if(runBatch):
-        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'quantity':100,'distributed':True, 'newOrderProbability':80,'proportion_of_weights':0.5}
+        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True}
 
-        variable_params = {'quantity':range(10,500,20)}
+        variable_params = {'quantity':[10,100,1000],'newOrderProbability':[80]}
 
         batch_run = BatchRunner(
             MASArchitecture,
             variable_params,
             fixed_params,
-            iterations=10,
-            max_steps=1000,
+            iterations=5,
+            max_steps=800,
             model_reporters={
-                "Utilisation": utilisation.machine_utilisation, 
-                "Complete_Orders": orders.ordersComplete,
-                'Average_Order_Wait_Time': orders.averageOrderWaitTime, 
-                "Successful_Orders":orders.successfulOrders,
-                'Messages_Sent': messages.messagesSent, 
-                'Late_Orders':orders.lateOrders,
-                'WIP_Backlog':orders.totalWIPSize, 
-                'Outsourced_Orders':orders.outsourcedOrders,
-                'Successful_Order_Price_Average':orders.averageSuccessfulOrderPrice,
-                'Successful_Order_Price_ASAP_Agent':orders.averageSuccessfulOrderPriceASAP,
-                'Successful_Order_Price_Cheap_Agent':orders.averageSuccessfulOrderPriceCheap,
-                'Successful_Order_Makespan_Average':orders.averageSuccessfulOrderMakeSpan,
-                'Successful_Order_Makespan_ASAP_Agent':orders.averageSuccessfulOrderMakeSpanASAP,
-                'Successful_Order_Makespan_Cheap_Agent':orders.averageSuccessfulOrderMakeSpanCheap,
-                'Max_Messages_Sent_Order': messages.maxMessagesSentFromOrder, 
-                'Max_Messages_Received_Order': messages.maxMessagesReceivedByOrder,
-                'Max_Messages_Sent_Factory': messages.maxMessagesSentFromFactory, 
-                'Max_Messages_Received_Factory': messages.maxMessagesReceivedByFactory},
+                "Utilisation": metrics.machineUtilisation,
+                "CompleteOrders": metrics.ordersComplete,
+                'AverageOrderWaitTime': metrics.averageOrderWaitTime,
+                'TotalMessagesSent': metrics.totalMessagesSent, 
+                'AverageMessagesSent': metrics.averageMessagesSent, 
+                "SuccessfulOrders":metrics.successfulOrders,
+                'OutsourcedOrders': metrics.outsourcedOrders,
+                'LateOrders':metrics.lateOrders,
+                'WIPBacklog':metrics.totalWIPSize, 
+                'MaxMessagesSentOrder': metrics.maxMessagesSentFromOrder, 
+                'MaxMessagesReceivedOrder': metrics.maxMessagesReceivedByOrder,
+                'MaxMessagesSentFactory': metrics.maxMessagesSentFromFactory, 
+                'MaxMessagesReceivedFactory': metrics.maxMessagesReceivedByFactory,
+                
+                'AverageSatisfactionScore':metrics.averageSatisfactionScore,
+                'AverageSuccessfulSatisfactionScore':metrics.averageSuccessfulSatisfactionScore,
+                'CheapOrdersWithCheapMachines':metrics.cheapOrdersWithCheapMachines,
+                'AsapOrdersWithFastMachines':metrics.asapOrdersWithFastMachines,
+                
+                'AverageSuccessfulPrice': metrics.averageSuccessfulOrderPrice,
+                'AverageSuccessfulOrderPriceCheap':metrics.averageSuccessfulOrderPriceCheap,
+                'AverageSuccessfulOrderPriceNeutral':metrics.averageSuccessfulOrderPriceNeutral,
+                'AverageSuccessfulOrderPriceAsap':metrics.averageSuccessfulOrderPriceAsap,
+                
+                'AverageSuccessfulMakespan': metrics.averageSuccessfulOrderMakeSpan,
+                'AverageSuccessfulOrderMakespanCheap':metrics.averageSuccessfulOrderMakespanCheap,
+                'AverageSuccessfulOrderMakespanNeutral':metrics.averageSuccessfulOrderMakespanNeutral,
+                'AverageSuccessfulOrderMakespanAsap':metrics.averageSuccessfulOrderMakespanAsap,
+
+                'SuccessfulAsapOrders':metrics.percentageOfSuccessfulASAPOrders,
+                'SuccessfulCheapOrders':metrics.percentageOfSuccessfulCheapOrders,
+                'SuccessfulNeutralOrders':metrics.percentageOfSuccessfulNeutralOrders
+                },
             agent_reporters={
                 'id':'unique_id',
-            #     # 'messages_sent':'messagesSent'
             #     # TODO: add in other agent reports that you would like to use
             }
         )
@@ -83,76 +93,103 @@ if __name__ == '__main__':
                 '/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{0}/agent_data.pkl'.format(number))
 
     
-    elif(runSingleBatch):
-
-        model = MASArchitecture(40,40,True,{
-                                    "Utilisation": utilisation.machine_utilisation, 
-                                    "Complete Orders": orders.ordersComplete,
-                                    'Average Order Wait Time': orders.averageOrderWaitTime, 
-                                    "% Successful Orders":orders.successfulOrders,
-                                    'Messages Sent': messages.messagesSent, 
-                                    "% Late Orders":orders.lateOrders,
-                                    'WIP Backlog':orders.totalWIPSize, 
-                                    'Max Messages Sent': messages.maxMessagesSentFromNode, 
-                                    'Max Messages Received': messages.maxMessagesReceivedByNode},
-                                    {
-                                    'id':'unique_id',
-                                    'messages_sent':'messagesSent'}
-                                    )
-
-        for i in range(900):
-            model.step()
-
-        agent_data = model.datacollector.get_agent_vars_dataframe()
-
-
-        one_agent_data = agent_data.xs(6, level="AgentID")
-        one_agent_data.messages_sent.plot()
-        plt.show()
-
-        # specific_step_messages_sent = hello.xs(20, level="Step")["messages_sent"]
-        # specific_step_messages_sent.hist(bins=range(50))
-        # plt.show()
-
-                               
     
     else:
         grid = CanvasGrid(agent_portrayal, 60, 60, 600, 600)
         chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],data_collector_name='datacollector')
         chart2 = ChartModule([{'Label': 'Complete Orders', 'Color': 'Black'}], data_collector_name='datacollector')
         chart3 = ChartModule([{'Label': 'Average Order Wait Time','Color': 'Red'}], data_collector_name='datacollector')
-        chart4 = ChartModule([{'Label': 'Messages Sent','Color': 'Red'}], data_collector_name='datacollector')
+        chart4 = ChartModule([{'Label': 'Total Messages Sent','Color': 'Red'}], data_collector_name='datacollector')
+        averageMessagesSentChart = ChartModule([{'Label': 'Average Messages Sent','Color': 'Red'}], data_collector_name='datacollector')
         chart5 = ChartModule([{'Label': 'Successful Orders','Color': 'Green'}], data_collector_name='datacollector')
-        chart6 = ChartModule([{'Label': 'Late Orders','Color': 'Red'}], data_collector_name='datacollector')
-        chart7 = ChartModule([{'Label': 'WIP Backlog','Color': 'Blue'}], data_collector_name='datacollector')
-        chart8 = ChartModule([{'Label': 'Max Messages Sent - Order','Color': 'Blue'}], data_collector_name='datacollector')
-        chart9 = ChartModule([{'Label': 'Max Messages Received - Order','Color': 'Blue'}], data_collector_name='datacollector')
-        chart10 = ChartModule([{'Label': 'Max Messages Sent - Factory','Color': 'Red'}], data_collector_name='datacollector')
-        chart11 = ChartModule([{'Label': 'Max Messages Received - Factory','Color': 'Red'}], data_collector_name='datacollector')
-        chart12 = ChartModule([{'Label': 'Outsourced Orders','Color': 'Blue'}], data_collector_name='datacollector')
-        chart13 = ChartModule([{'Label': '% Cheap orders with cheap machines','Color': 'Green'}], data_collector_name='datacollector')
-        chart14 = ChartModule([{'Label': '% Asap orders with fast machines','Color': 'Green'}], data_collector_name='datacollector')
+        chart6 = ChartModule([{'Label': 'Outsourced Orders','Color': 'Blue'}], data_collector_name='datacollector')
+        chart7 = ChartModule([{'Label': 'Late Orders','Color': 'Red'}], data_collector_name='datacollector')
+        chart8 = ChartModule([{'Label': 'WIP Backlog','Color': 'Blue'}], data_collector_name='datacollector')
+        chart9 = ChartModule([{'Label': 'Max Messages Sent - Order','Color': 'Blue'}], data_collector_name='datacollector')
+        chart10 = ChartModule([{'Label': 'Max Messages Received - Order','Color': 'Blue'}], data_collector_name='datacollector')
+        chart11 = ChartModule([{'Label': 'Max Messages Sent - Factory','Color': 'Red'}], data_collector_name='datacollector')
+        chart12 = ChartModule([{'Label': 'Max Messages Received - Factory','Color': 'Red'}], data_collector_name='datacollector')
+        
+        
+
+        chart13 = ChartModule([{'Label': 'Average satisfaction score','Color': 'Blue'}], data_collector_name='datacollector')
+        chart14 = ChartModule([{'Label': 'Average successful satisfaction score','Color': 'Blue'}], data_collector_name='datacollector')
+        chart15 = ChartModule([{'Label': '% Cheap orders with cheap machines','Color': 'Green'}], data_collector_name='datacollector')
+        chart16 = ChartModule([{'Label': '% Asap orders with fast machines','Color': 'Green'}], data_collector_name='datacollector')
+
+        chart17 = ChartModule([{'Label': 'Average successful price','Color': 'Blue'}], data_collector_name='datacollector')
+        chart18 = ChartModule([{'Label': 'Average successful price Cheap','Color': 'Blue'}], data_collector_name='datacollector')
+        chart19 = ChartModule([{'Label': 'Average successful price Neutral','Color': 'Blue'}], data_collector_name='datacollector')
+        chart20 = ChartModule([{'Label': 'Average successful price Asap','Color': 'Blue'}], data_collector_name='datacollector')
+
+        chart21 = ChartModule([{'Label': 'Average successful makespan','Color': 'Green'}], data_collector_name='datacollector')
+        chart22 = ChartModule([{'Label': 'Average successful makespan Cheap','Color': 'Green'}], data_collector_name='datacollector')
+        chart23 = ChartModule([{'Label': 'Average successful makespan Neutral','Color': 'Green'}], data_collector_name='datacollector')
+        chart24 = ChartModule([{'Label': 'Average successful makespan Asap','Color': 'Green'}], data_collector_name='datacollector')
+
+        chart25 = ChartModule([{'Label': 'Successful Cheap Orders','Color': 'Red'}], data_collector_name='datacollector')
+        chart26 = ChartModule([{'Label': 'Successful Neutral Orders','Color': 'Red'}], data_collector_name='datacollector')
+        chart27 = ChartModule([{'Label': 'Successful Asap Orders','Color': 'Red'}], data_collector_name='datacollector')
+
+
+
+        
 
         
         server = ModularServer(MASArchitecture,
-                            [grid, chart, chart4, chart5,  chart12, chart2, chart6, chart7, chart3,  chart8, chart9, chart10,chart11,chart13,chart14],
+                            [grid,
+                             chart,
+                             chart2,
+                             chart3,
+                             chart4,
+                             averageMessagesSentChart,
+                            chart5,  
+                            chart6, 
+                            chart7, 
+                             chart8, chart9, chart10,chart11, chart12,
+                            chart13,chart14,
+                            chart15,
+                            chart16,chart17,
+                            chart18, chart19, chart20,chart21,chart22,chart23,chart24,chart25,chart26,chart27
+            ],
                             'Festo-Fetch.ai',
-                            {'width': 60, 'height': 60, 'distributed':True,'quantity':100,'splitSize':1,'newOrderProbability':80,'proportion_of_weights':0.5,
+
+                            {'width': 60, 'height': 60, 'distributed':True,'quantity':10,'splitSize':1,'newOrderProbability':80,
                                 'model_reporters_dict': {
-                                    "Utilisation": utilisation.machine_utilisation,
-                                    "Complete Orders": orders.ordersComplete,
-                                    'Average Order Wait Time': orders.averageOrderWaitTime, 
-                                    "Successful Orders":orders.successfulOrders,
-                                    'Messages Sent': messages.messagesSent, 
-                                    'Late Orders':orders.lateOrders,
-                                    'WIP Backlog':orders.totalWIPSize, 
-                                    'Max Messages Sent - Order': messages.maxMessagesSentFromOrder, 
-                                    'Max Messages Received - Order': messages.maxMessagesReceivedByOrder,
-                                    'Max Messages Sent - Factory': messages.maxMessagesSentFromFactory, 
-                                    'Max Messages Received - Factory': messages.maxMessagesReceivedByFactory,
-                                    'Outsourced Orders': orders.outsourcedOrders,
-                                    '% Cheap orders with cheap machines':orders.cheapOrdersWithCheapMachines,
-                                    '% Asap orders with fast machines':orders.asapOrdersWithFastMachines
+                                    "Utilisation": metrics.machineUtilisation,
+                                    "Complete Orders": metrics.ordersComplete,
+                                    'Average Order Wait Time': metrics.averageOrderWaitTime, 
+                                    "Successful Orders":metrics.successfulOrders,
+                                    'Total Messages Sent': metrics.totalMessagesSent, 
+                                    'Average Messages Sent': metrics.averageMessagesSent, 
+                                    'Late Orders':metrics.lateOrders,
+                                    'WIP Backlog':metrics.totalWIPSize, 
+                                    'Max Messages Sent - Order': metrics.maxMessagesSentFromOrder, 
+                                    'Max Messages Received - Order': metrics.maxMessagesReceivedByOrder,
+                                    'Max Messages Sent - Factory': metrics.maxMessagesSentFromFactory, 
+                                    'Max Messages Received - Factory': metrics.maxMessagesReceivedByFactory,
+                                    'Outsourced Orders': metrics.outsourcedOrders,
+                                    
+                                    'Average successful satisfaction score':metrics.averageSuccessfulSatisfactionScore,
+                                    'Average satisfaction score':metrics.averageSatisfactionScore,
+                                    '% Cheap orders with cheap machines':metrics.cheapOrdersWithCheapMachines,
+                                    '% Asap orders with fast machines':metrics.asapOrdersWithFastMachines,
+
+                                    'Average successful price': metrics.averageSuccessfulOrderPrice,
+
+                                    'Average successful price Cheap':metrics.averageSuccessfulOrderPriceCheap,
+                                    'Average successful price Neutral':metrics.averageSuccessfulOrderPriceNeutral,
+                                    'Average successful price Asap':metrics.averageSuccessfulOrderPriceAsap,
+                                    
+                                    'Average successful makespan': metrics.averageSuccessfulOrderMakeSpan,
+
+                                    'Average successful makespan Cheap':metrics.averageSuccessfulOrderMakespanCheap,
+                                    'Average successful makespan Neutral':metrics.averageSuccessfulOrderMakespanNeutral,
+                                    'Average successful makespan Asap':metrics.averageSuccessfulOrderMakespanAsap,
+                
+                                    'Successful Cheap Orders':metrics.percentageOfSuccessfulASAPOrders,
+                                    'Successful Neutral Orders':metrics.percentageOfSuccessfulCheapOrders,
+                                    'Successful Asap Orders':metrics.percentageOfSuccessfulNeutralOrders
 
                                     }})
 

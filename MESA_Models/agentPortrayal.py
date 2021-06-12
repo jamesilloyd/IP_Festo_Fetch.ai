@@ -40,7 +40,7 @@ def agent_portrayal(agent):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
                 "Filled": "true",
-                'text': agent.agentType,
+                'text': 'SOEF',
                 'text_color':'black',
                 "Layer": 0,
                 "r": 3}

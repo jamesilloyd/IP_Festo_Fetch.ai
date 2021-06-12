@@ -22,7 +22,9 @@ factoriesAndCapabilities = [
 
 class MASArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict=None, agent_reporters_dict=None, newOrderProbability=10, quantity=1, splitSize=1,proportion_of_weights = 0.5):
+    def __init__(self, width, height, distributed, model_reporters_dict=None, agent_reporters_dict=None, newOrderProbability=10, quantity=1, splitSize=1):
+
+        print('New Order Probability {} - Quantity {}'.format(newOrderProbability,quantity))
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -36,11 +38,11 @@ class MASArchitecture(Model):
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre, federationCentre.coordinates)
 
-        numberOfCheap = round(quantity * proportion_of_weights)
-        numberOfASAP = round(quantity * (1 - proportion_of_weights))
+        numberOfCheap = round(quantity * 0.5)
+        numberOfASAP = round(quantity * 0.5)
 
-        print(numberOfASAP)
-        print(numberOfCheap)
+        # print(numberOfASAP)
+        # print(numberOfCheap)
 
         while numberOfCheap != 0:
             numberOfCheap -= 1
@@ -48,7 +50,7 @@ class MASArchitecture(Model):
                 factoryNumber = self.schedule.get_agent_count() + 1
 
                 newFactoryAgent = FactoryAgent(
-                    factoryNumber, self, factory[0], distributed, newOrderProbability, splitSize=splitSize, requirements='cheap')
+                    factoryNumber, self, factory[0], distributed, newOrderProbability, splitSize=splitSize)
 
                 self.schedule.add(newFactoryAgent)
                 self.grid.place_agent(
@@ -59,7 +61,7 @@ class MASArchitecture(Model):
                     coordinates = (
                         factory[0][0] + 3, factory[0][1] - incrementedYCoordinate)
                     newMachine = MachineAgent(self.schedule.get_agent_count(
-                    ) + 1, self, capability, coordinates, factoryNumber,fastOrCheap='cheap')
+                    ) + 1, self, capability, coordinates, factoryNumber,asapOrCheap='cheap')
                     self.schedule.add(newMachine)
                     self.grid.place_agent(newMachine, newMachine.coordinates)
                     incrementedYCoordinate += 2
@@ -75,7 +77,7 @@ class MASArchitecture(Model):
                 factoryNumber = self.schedule.get_agent_count() + 1
 
                 newFactoryAgent = FactoryAgent(
-                    factoryNumber, self, coordinates, distributed, newOrderProbability, splitSize=splitSize, requirements='asap')
+                    factoryNumber, self, coordinates, distributed, newOrderProbability, splitSize=splitSize)
 
                 self.schedule.add(newFactoryAgent)
                 self.grid.place_agent(
@@ -87,7 +89,7 @@ class MASArchitecture(Model):
                         coordinates[0] + 3, coordinates[1] - incrementedYCoordinate)
                     
                     newMachine = MachineAgent(self.schedule.get_agent_count(
-                    ) + 1, self, capability, newCoordinates, factoryNumber,fastOrCheap='asap')
+                    ) + 1, self, capability, newCoordinates, factoryNumber,asapOrCheap='asap')
                     self.schedule.add(newMachine)
                     self.grid.place_agent(newMachine, newMachine.coordinates)
                     incrementedYCoordinate += 2
@@ -102,13 +104,13 @@ class MASArchitecture(Model):
             )
 
     def step(self):
-        print("Weeks {} Days {} Hours {}".format(
-            self.weeks, self.days, self.hours))
+        # print("Weeks {} Days {} Hours {}".format(
+        #     self.weeks, self.days, self.hours))
 
         '''Advance the model by one step.'''
-        self.datacollector.collect(self)
         self.schedule.step()
-
+        # Collect data
+        self.datacollector.collect(self)
         self.hours += 1
         if(self.hours == 8):
             self.hours = 0
@@ -117,4 +119,3 @@ class MASArchitecture(Model):
         if(self.days == 5):
             self.days = 0
             self.weeks += 1
-
