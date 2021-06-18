@@ -19,6 +19,8 @@ def loopThroughModel(model,count): #The count is used to restart the cache for e
 
     total_machine_time_working = 0
 
+    total_order_unsuccessful_due_to_no_bids = 0
+
     total_machine_time_free = 0
     total_messages_sent = 0
 
@@ -33,6 +35,9 @@ def loopThroughModel(model,count): #The count is used to restart the cache for e
             total_orders += 1 / agent.size
             total_wait_time += agent.waitTime / agent.size
             total_satisfaction_score += agent.finalSatisfactionScore
+            
+            if(agent.orderUnsuccessfulDueToNoProposals):
+                total_order_unsuccessful_due_to_no_bids += 1
             
             if(agent.successful):
                 total_successful_orders += 1 / agent.size
@@ -92,10 +97,16 @@ def loopThroughModel(model,count): #The count is used to restart the cache for e
         stats['successfulOrders'] = 0
         stats['averageOrderWaitTime'] = 0
         stats['averageSatisfactionScore'] = 0
+        
     else:
         stats['successfulOrders'] = total_successful_orders / total_orders
         stats['averageOrderWaitTime'] = total_wait_time / total_orders
         stats['averageSatisfactionScore'] = total_satisfaction_score / total_orders
+
+    if total_orders - total_successful_orders == 0:
+        stats['orderFailedDueToNoProposals'] = 0
+    else:
+        stats['orderFailedDueToNoProposals'] = total_order_unsuccessful_due_to_no_bids / (total_orders - total_successful_orders)
 
     if total_successful_orders == 0:
         stats['outsourcedOrders'] = 0
@@ -124,6 +135,11 @@ def modelStatistics(model,output):
 
 
 '''MACHINE METRICS'''
+
+def noProposalOrders(model):
+
+    return modelStatistics(model,'orderFailedDueToNoProposals')
+
 def machineUtilisation(model):
 
     return modelStatistics(model,'machineUtilisation')

@@ -21,15 +21,15 @@ if __name__ == '__main__':
     # sys.stdout = f
 
     if(runBatch):
-        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True}
+        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True,'verbose':False}
 
-        variable_params = {'quantity':[10,100,1000],'newOrderProbability':[80]}
+        variable_params = {'quantity':[10,20,50,80,100,120,150],'ordersPerWeek':[1,5,20,40,80,120],'searchSize':[1,2,3,5]}
 
         batch_run = BatchRunner(
             MASArchitecture,
             variable_params,
             fixed_params,
-            iterations=5,
+            iterations=10,
             max_steps=800,
             model_reporters={
                 "Utilisation": metrics.machineUtilisation,
@@ -38,6 +38,7 @@ if __name__ == '__main__':
                 'TotalMessagesSent': metrics.totalMessagesSent, 
                 'AverageMessagesSent': metrics.averageMessagesSent, 
                 "SuccessfulOrders":metrics.successfulOrders,
+                "noProposalOrders":metrics.noProposalOrders,
                 'OutsourcedOrders': metrics.outsourcedOrders,
                 'LateOrders':metrics.lateOrders,
                 'WIPBacklog':metrics.totalWIPSize, 
@@ -95,6 +96,7 @@ if __name__ == '__main__':
     
     
     else:
+        # TODO: rename all of these
         grid = CanvasGrid(agent_portrayal, 60, 60, 600, 600)
         chart = ChartModule([{'Label': 'Utilisation', "Color": 'Black'}],data_collector_name='datacollector')
         chart2 = ChartModule([{'Label': 'Complete Orders', 'Color': 'Black'}], data_collector_name='datacollector')
@@ -130,6 +132,7 @@ if __name__ == '__main__':
         chart25 = ChartModule([{'Label': 'Successful Cheap Orders','Color': 'Red'}], data_collector_name='datacollector')
         chart26 = ChartModule([{'Label': 'Successful Neutral Orders','Color': 'Red'}], data_collector_name='datacollector')
         chart27 = ChartModule([{'Label': 'Successful Asap Orders','Color': 'Red'}], data_collector_name='datacollector')
+        noProposalOrdersChart = ChartModule([{'Label': 'Orders that received no proposals','Color': 'Red'}], data_collector_name='datacollector')
 
 
 
@@ -144,7 +147,8 @@ if __name__ == '__main__':
                              chart4,
                              averageMessagesSentChart,
                             chart5,  
-                            chart6, 
+                            noProposalOrdersChart,
+                            chart6,
                             chart7, 
                              chart8, chart9, chart10,chart11, chart12,
                             chart13,chart14,
@@ -154,7 +158,7 @@ if __name__ == '__main__':
             ],
                             'Festo-Fetch.ai',
 
-                            {'width': 60, 'height': 60, 'distributed':True,'quantity':10,'splitSize':1,'newOrderProbability':80,
+                            {'width': 60, 'height': 60, 'distributed':True,'quantity':10,'splitSize':1,'newOrderProbability':5,'verbose':True,
                                 'model_reporters_dict': {
                                     "Utilisation": metrics.machineUtilisation,
                                     "Complete Orders": metrics.ordersComplete,
@@ -169,6 +173,7 @@ if __name__ == '__main__':
                                     'Max Messages Sent - Factory': metrics.maxMessagesSentFromFactory, 
                                     'Max Messages Received - Factory': metrics.maxMessagesReceivedByFactory,
                                     'Outsourced Orders': metrics.outsourcedOrders,
+                                    'Orders that received no proposals':metrics.noProposalOrders,
                                     
                                     'Average successful satisfaction score':metrics.averageSuccessfulSatisfactionScore,
                                     'Average satisfaction score':metrics.averageSatisfactionScore,
