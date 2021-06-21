@@ -10,15 +10,32 @@ pip install mesa
 ## __main.py__
 Simulations can be run here. They can be run as a batch or in visualisation mode by setting the booleans at the top of the file. 
 
-## _Architectures_ folder
-This contains the agent and architecture classes. The most developed architecture is labelled _Inter-Firm / Trust_. Other architectures developed are included in the _old_archs_ sub-directory.
+## __ArchitectureModel.py__ file
+This contains the architecture configuration. The factories and their capabilities are chosen by the list at the top of the file. Currently the architecture is setup to have 50% of the machines running fast/expensive and 50% of the machines running slow/cheap, this is based on the quantity of factories specified on initialisation. Additionally, at each "step" in the model new orders are generated based on the number of orders per week. 
 
-## _Metrics_ folder 
+## _agents_ folder
+# __factory_agent.py__
+The class for company / factory agents.
+# __machine_agent.py__
+The class for machine agents.
+# __order_agent.py__
+The class for order agents.
+# __SOEF.py__
+The class for the SOEF.
+# __operations.py__
+Contains the dictionary of capability parameters.
+# __message.py__
+Class for sending messages between agents. 
 
-This contains the functions that iterate through the agents in the architecture and collects their attributes to return the performance metrics
+
+## __metrics.py__ file 
+This contains the functions that iterate through the agents in the architecture and collects their attributes to create the performance metrics
 
 ## Results
-The main results used in the Block 2 report can be found in the Excel file, other results are stored as pandas in the the _results_ folder. 
+Results can be created and stored as pandas in the the _results_ folder. 
 
-## Ignore  
-The _tutorial_ folder was used to learn how to use MESA from their documentary https://mesa.readthedocs.io.
+## Visualisation
+The __agentPortrayal.py__ file determines how the agents are displayed in the simulations.
+
+## __run_results.py__ file
+This file is used to access the saved results and render matplotlib 2D and 3D plots.
