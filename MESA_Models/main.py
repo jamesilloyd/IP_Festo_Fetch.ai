@@ -10,7 +10,7 @@ import os
 import random
 import sys
 
-runBatch = False
+runBatch = True
 architecture = 'Inter-Firm'
 saveResults = True
 
