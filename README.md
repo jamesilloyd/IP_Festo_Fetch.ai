@@ -15,7 +15,7 @@ This contains the architecture configuration. The factories and their capabiliti
 
 ## _agents_ folder
 ### __factory_agent.py__
-The class for company / factory agents.
+The class for company / factory agents. Some functionality is currently turned off (commented out) such as creating orders and checking internal capabilities first. This can be toggled back on. 
 ### __machine_agent.py__
 The class for machine agents.
 ### __order_agent.py__
