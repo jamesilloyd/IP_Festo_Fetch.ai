@@ -148,13 +148,8 @@ class OrderAgent(Agent):
 
     def findResources(self, message):
         # Initial factory cannot complete me so I need to find other ids
-<<<<<<< HEAD:MESA_Models/agents/order_agent.py
         print('Order {} - Asking SOEF for ids'.format(self.unique_id))
         # Ask SOEF for company ids
-=======
-        print('Order {} - Asking Federator for ids'.format(self.unique_id))
-        # Ask federator for company ids
->>>>>>> 22b1b392ba0c720bb366f28fa8e3b4582c48ab04:MESA_Models/Architectures/Block3/Test3/agents/order_agent.py
 
         for agent in self.model.schedule.agents:
             if agent.agentType == 'SOEF':

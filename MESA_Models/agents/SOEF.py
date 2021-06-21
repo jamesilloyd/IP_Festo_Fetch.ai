@@ -2,23 +2,7 @@ from mesa import Agent, Model
 import random
 from .message import Message
 
-<<<<<<< HEAD:MESA_Models/agents/SOEF.py
 class SOEF(Agent):
-=======
-'''
-	- Assists other holons in performing their work
-	- Considered an external expert that gives advice
-	- But the basic holon still makes the decision
-	- Allows for centralised elements in the architecture
-		○ Solves problems that are almost impossible in a distributed manner
-	- They may request information from orders and resources so they have a full-view of the system
-		○ This can allow orders or resources to have a schedule
-		○ But it is advice, not commands
-...Could be used to represent the MES, or shop floor control
-'''
-# TODO: rename to SOEF
-class TrustFederationAgent(Agent):
->>>>>>> 22b1b392ba0c720bb366f28fa8e3b4582c48ab04:MESA_Models/agents/federation_agent.py
     
     agentType = 'SOEF'
 
