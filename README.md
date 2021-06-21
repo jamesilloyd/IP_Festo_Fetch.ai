@@ -26,6 +26,8 @@ The class for the SOEF.
 Contains the dictionary of capability parameters.
 ### __message.py__
 Class for sending messages between agents. 
+### __offer.py__
+Classes for a company agent's bid/proposal and an order agent's requirements. The requirements class carries out the multi-objective optimisation algorithm.
 
 
 ## __metrics.py__ file 
