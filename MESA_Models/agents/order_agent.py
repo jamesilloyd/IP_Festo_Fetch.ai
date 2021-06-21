@@ -5,14 +5,6 @@ from .operations import operationDictionary
 from .offer import Requirement
 
 
-'''
-Order agent
-	- Represents a task in the manufacturing system 
-    - Could be customer order, make-to-stock, prototype order etc. 
-	- Ensure it is done on time and correctly
-'''
-
-
 class OrderAgent(Agent):
 
     agentType = 'order'
@@ -156,18 +148,23 @@ class OrderAgent(Agent):
 
     def findResources(self, message):
         # Initial factory cannot complete me so I need to find other ids
+<<<<<<< HEAD:MESA_Models/agents/order_agent.py
+        print('Order {} - Asking SOEF for ids'.format(self.unique_id))
+        # Ask SOEF for company ids
+=======
         print('Order {} - Asking Federator for ids'.format(self.unique_id))
         # Ask federator for company ids
+>>>>>>> 22b1b392ba0c720bb366f28fa8e3b4582c48ab04:MESA_Models/Architectures/Block3/Test3/agents/order_agent.py
 
         for agent in self.model.schedule.agents:
-            if agent.agentType == 'federator':
+            if agent.agentType == 'SOEF':
                 message = Message(self.unique_id, 'idsRequest',
                                   capability=self.productType, orderId=self.unique_id)
                 agent.receivedMessages.append(message)
                 self.totalMessagesSent += 1
                 self.maxMessagesSent += 1
                 break
-        self.status = 'waitingForResponseFromFederator'
+        self.status = 'waitingForResponseFromSOEF'
 
     def sendProposalToFactories(self, message):
         # Check if the received factory Ids are empty or not

@@ -1,5 +1,5 @@
 from hashlib import new
-from .agents.offer import Requirement
+# from .agents.offer import Requirement
 import sys, os
 from mesa import Agent, Model
 from mesa.space import MultiGrid
@@ -7,20 +7,14 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 import random
 # from .agents.order_agent import OrderAgent
-from .agents.machine_agent import MachineAgent
-from .agents.factory_agent import FactoryAgent
-from .agents.federation_agent import TrustFederationAgent
-from .agents.order_agent import OrderAgent
-from .agents.message import Message
+from agents.machine_agent import MachineAgent
+from agents.factory_agent import FactoryAgent
+from agents.SOEF import SOEF
+from agents.order_agent import OrderAgent
+from agents.message import Message
 
-'''
-Here we are testing whether the order agent can improve the overall system performance by considering scheduling as part of its decision (instead of bid price)
--
--
-'''
 
-# Put this somewhere else
-
+# Coordinates and capabilities of each factory
 factoriesAndCapabilities = [
     [(25, 25), ['3D_SLS']],
 ]
@@ -44,12 +38,13 @@ class MASArchitecture(Model):
         self.days = 0
         self.weeks = 0
 
+        # This is the number of external orders the marketplace recieved per week
         self.ordersPerWeek = ordersPerWeek
-
+        # This is the probability at any given step that a factory will produce a new order
         self.newOrderProbability = newOrderProbability
         self.splitSize = splitSize
 
-        federationCentre = TrustFederationAgent(1, self, (49, 49), searchSize)
+        federationCentre = SOEF(1, self, (49, 49), searchSize)
 
         self.schedule.add(federationCentre)
         self.grid.place_agent(federationCentre, federationCentre.coordinates)
@@ -124,11 +119,32 @@ class MASArchitecture(Model):
 
     def step(self):
         
-        # sys.stdout = sys.__stdout__
-        # print("Steps {} Weeks {} Days {} Hours {}".format(self.schedule.steps,
-        #     self.weeks, self.days, self.hours))
-        # if(not self.verbose):
-        #     sys.stdout = open(os.devnull, 'w')
+        sys.stdout = sys.__stdout__
+        print("Steps {} Weeks {} Days {} Hours {}".format(self.schedule.steps,
+            self.weeks, self.days, self.hours))
+        if(not self.verbose):
+            sys.stdout = open(os.devnull, 'w')
+
+        # Generate new orders
+        if(self.ordersPerWeek <= 40):
+            number = random.randrange(40//self.ordersPerWeek)
+            if(number == 0):
+                capabilities = ['3D_SLS']
+                orderAgent = OrderAgent(self.schedule.get_agent_count()+1,self,capabilities,self.dummyFactoryId,splitSize=self.splitSize)
+                self.schedule.add(orderAgent)
+                self.grid.place_agent(orderAgent,self.dummyFactoryAgent.newOrderCoordinates)
+                newMessage = Message(self.dummyFactoryId,'findResources')
+                orderAgent.receivedMessages.append(newMessage)
+        else:
+            count = self.ordersPerWeek // 40
+            while count != 0:
+                count -= 1
+                capabilities = ['3D_SLS']
+                orderAgent = OrderAgent(self.schedule.get_agent_count()+1,self,capabilities,self.dummyFactoryId,splitSize=self.splitSize)
+                self.schedule.add(orderAgent)
+                self.grid.place_agent(orderAgent,self.dummyFactoryAgent.newOrderCoordinates)
+                newMessage = Message(self.dummyFactoryId,'findResources')
+                orderAgent.receivedMessages.append(newMessage)
 
         '''Advance the model by one step.'''
         # Way easier to convert to hours... 

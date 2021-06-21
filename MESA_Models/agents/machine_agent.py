@@ -3,11 +3,6 @@ from .message import Message
 from .operations import operationDictionary
 import random
 
-'''
-Machine 
-	- Manages machine agents beneath it
-'''
-
 class MachineAgent(Agent):
 
     agentType = 'machine'

@@ -5,12 +5,12 @@ from mesa.batchrunner import BatchRunner
 from agentPortrayal import agent_portrayal
 import metrics
 from matplotlib import pyplot as plt
-from Architectures.Block3.Test3.ArchitectureModel import MASArchitecture
+from ArchitectureModel import MASArchitecture
 import os
 import random
 import sys
 
-runBatch = True
+runBatch = False
 architecture = 'Inter-Firm'
 saveResults = True
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     if(runBatch):
         fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True,'verbose':False}
 
-        variable_params = {'quantity':[10,20,50,80,100,120,150],'ordersPerWeek':[1,5,20,40,80,120],'searchSize':[1,2,3,5]}
+        variable_params = {'quantity':[10,20,50,80,100,120,150],'ordersPerWeek':[1,5,20,40,80,120],'searchSize':[1]}
 
         batch_run = BatchRunner(
             MASArchitecture,
@@ -81,17 +81,17 @@ if __name__ == '__main__':
         # Save results
         if(saveResults):
             number = 0
-            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{0}'.format(number)) == True):
+            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/test_{0}'.format(number)) == True):
                 number += 1
 
             # TODO: maybe make a text file that describes the test that has been run
             os.makedirs(
-                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{0}'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/test_{0}'.format(number))
 
             model_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{0}/model_data.pkl'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/test_{0}/model_data.pkl'.format(number))
             agent_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{0}/agent_data.pkl'.format(number))
+                '/Users/heisenberg/IP/MESA_Models/results/test_{0}/agent_data.pkl'.format(number))
 
     
     
@@ -158,7 +158,7 @@ if __name__ == '__main__':
             ],
                             'Festo-Fetch.ai',
 
-                            {'width': 60, 'height': 60, 'distributed':True,'quantity':10,'splitSize':1,'newOrderProbability':5,'verbose':True,
+                            {'width': 60, 'height': 60, 'distributed':True,'quantity':10,'splitSize':1,'newOrderProbability':5,'verbose':True,'ordersPerWeek':40,
                                 'model_reporters_dict': {
                                     "Utilisation": metrics.machineUtilisation,
                                     "Complete Orders": metrics.ordersComplete,

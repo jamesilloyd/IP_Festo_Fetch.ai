@@ -36,7 +36,7 @@ def agent_portrayal(agent):
                 'text_color':'black',
                 "Layer": 0,
                 "w": 1,'h':1 }
-    elif(agent.agentType in ['scheduler','broker','staff','federator']):
+    elif(agent.agentType == 'SOEF'):
         portrayal = {"Shape": "circle",
                 "Color": 'green',
                 "Filled": "true",
@@ -44,14 +44,6 @@ def agent_portrayal(agent):
                 'text_color':'black',
                 "Layer": 0,
                 "r": 3}
-    elif(agent.agentType == 'product'):
-        portrayal = {"Shape": "circle",
-                "Color": 'green',
-                "Filled": "true",
-                'text': agent.productType,
-                'text_color':'black',
-                "Layer": 0,
-                "r": 0.7 }
     elif(agent.agentType == 'factory'):
         portrayal = {"Shape": "rect",
                 "Color": 'red',

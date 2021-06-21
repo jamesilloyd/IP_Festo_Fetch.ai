@@ -5,11 +5,6 @@ from .message import Message
 from .offer import Bid, Requirement
 
 
-'''
-	-represents a manufacturing company
-    -it manages machine agents
-    -it is responsible for creating order agents to be outsourced
-'''
 class FactoryAgent(Agent):
     
     agentType = 'factory'
@@ -207,9 +202,9 @@ class FactoryAgent(Agent):
                 else:
                     self.capabilities.update({message.capability:{'ids':[message.fromId]}})
 
-                # Let the federator know
+                # Let the SOEF know
                 for agent in self.model.schedule.agents:
-                    if agent.agentType == 'federator':
+                    if agent.agentType == 'SOEF':
                         capabilitiesMessage = Message(self.unique_id,'announceCapabiliesFactory',capabilities=self.capabilities.keys())
                         agent.receivedMessages.append(capabilitiesMessage)
                         self.totalMessagesSent += 1

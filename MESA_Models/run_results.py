@@ -8,17 +8,17 @@ page = 7
 # page = 4
 page = 8
 page = 9
-page = 10
+page = 0
 runningWeights = False
 
 
-model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/Block3/Test3/test_{}/model_data.pkl'.format(page))
+model_data_pickle = pd.read_pickle('/Users/heisenberg/IP/MESA_Models/results/test_{}/model_data.pkl'.format(page))
 
 
 
 print(model_data_pickle)
 
-if(page == 10):
+if(page == 0):
 
     plots = {
             'Utilisation':model_data_pickle.Utilisation,
