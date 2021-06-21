@@ -14,17 +14,17 @@ Simulations can be run here. They can be run as a batch or in visualisation mode
 This contains the architecture configuration. The factories and their capabilities are chosen by the list at the top of the file. Currently the architecture is setup to have 50% of the machines running fast/expensive and 50% of the machines running slow/cheap, this is based on the quantity of factories specified on initialisation. Additionally, at each "step" in the model new orders are generated based on the number of orders per week. 
 
 ## _agents_ folder
-# __factory_agent.py__
+### __factory_agent.py__
 The class for company / factory agents.
-# __machine_agent.py__
+### __machine_agent.py__
 The class for machine agents.
-# __order_agent.py__
+### __order_agent.py__
 The class for order agents.
-# __SOEF.py__
+### __SOEF.py__
 The class for the SOEF.
-# __operations.py__
+### __operations.py__
 Contains the dictionary of capability parameters.
-# __message.py__
+### __message.py__
 Class for sending messages between agents. 
 
 
