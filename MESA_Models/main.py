@@ -14,16 +14,17 @@ runBatch = True
 architecture = 'Inter-Firm'
 saveResults = True
 
+
+
 if __name__ == '__main__':
 
-    # orig_stdout = sys.stdout
-    # f=open('out5.txt','w')
-    # sys.stdout = f
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    
 
     if(runBatch):
-        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True,'verbose':False}
+        fixed_params = {'width': 60, 'height': 60,'splitSize':1,'distributed':True,'verbose':False,'searchSize':1,'batchRun':True}
 
-        variable_params = {'quantity':[10,20,50,80,100,120,150],'ordersPerWeek':[1,5,20,40,80,120],'searchSize':[1]}
+        variable_params = {'quantity':[10,20,50,80,100,120,150],'ordersPerWeek':[1,5,20,40,80,120]}
 
         batch_run = BatchRunner(
             MASArchitecture,
@@ -81,17 +82,18 @@ if __name__ == '__main__':
         # Save results
         if(saveResults):
             number = 0
-            while (os.path.exists('/Users/heisenberg/IP/MESA_Models/results/test_{0}'.format(number)) == True):
+            ### CHANGE PATH TO WHERE YOU WANT RESULTS TO BE SAVED
+            while (os.path.exists('{}/results/test_{}'.format(dir_path,number)) == True):
                 number += 1
 
             # TODO: maybe make a text file that describes the test that has been run
             os.makedirs(
-                '/Users/heisenberg/IP/MESA_Models/results/test_{0}'.format(number))
+                '{}/results/test_{}'.format(dir_path,number))
 
             model_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/test_{0}/model_data.pkl'.format(number))
+                '{}/results/test_{}/model_data.pkl'.format(dir_path,number))
             agent_data.to_pickle(
-                '/Users/heisenberg/IP/MESA_Models/results/test_{0}/agent_data.pkl'.format(number))
+                '{}/results/test_{}/agent_data.pkl'.format(dir_path,number))
 
     
     

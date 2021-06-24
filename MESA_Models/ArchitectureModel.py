@@ -19,9 +19,11 @@ factoriesAndCapabilities = [
     [(25, 25), ['3D_SLS']],
 ]
 
+
+
 class MASArchitecture(Model):
 
-    def __init__(self, width, height, distributed, model_reporters_dict=None, agent_reporters_dict=None, newOrderProbability=10, quantity=1, splitSize=1,verbose = True,searchSize = 1,ordersPerWeek = 1):
+    def __init__(self, width, height, distributed, model_reporters_dict=None, agent_reporters_dict=None, newOrderProbability=10, quantity=1, splitSize=1,verbose = True,searchSize = 1,ordersPerWeek = 1,batchRun = False):
         sys.stdout = sys.__stdout__
         print('New Order Probability {} - Quantity {} - Orders Per week {}'.format(newOrderProbability,quantity,ordersPerWeek))
         self.verbose = verbose
@@ -37,6 +39,8 @@ class MASArchitecture(Model):
         self.hours = 0
         self.days = 0
         self.weeks = 0
+
+        self.batchRun = batchRun
 
         # This is the number of external orders the marketplace recieved per week
         self.ordersPerWeek = ordersPerWeek
@@ -119,11 +123,12 @@ class MASArchitecture(Model):
 
     def step(self):
         
-        sys.stdout = sys.__stdout__
-        print("Steps {} Weeks {} Days {} Hours {}".format(self.schedule.steps,
-            self.weeks, self.days, self.hours))
-        if(not self.verbose):
-            sys.stdout = open(os.devnull, 'w')
+        if(not self.batchRun):
+            sys.stdout = sys.__stdout__
+            print("Steps {} Weeks {} Days {} Hours {}".format(self.schedule.steps,
+                self.weeks, self.days, self.hours))
+            if(not self.verbose):
+                sys.stdout = open(os.devnull, 'w')
 
         # Generate new orders
         if(self.ordersPerWeek <= 40):
